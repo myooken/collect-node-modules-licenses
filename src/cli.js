@@ -74,14 +74,23 @@ export async function runCli(argv = process.argv.slice(2)) {
   }
 }
 
-function isDirectCliCall() {
-  const self = fileURLToPath(import.meta.url);
+function isCliExecution() {
+  // npm bin/shim経由でも動くように、実ファイル一致だけでなく .bin/third-party-notices も許可
   const argv1 = process.argv[1];
   if (!argv1) return false;
-  return path.resolve(argv1) === self;
+  const self = fileURLToPath(import.meta.url);
+  const resolvedArg = path.resolve(argv1);
+  if (resolvedArg === self) return true;
+
+  const base = path.basename(resolvedArg).toLowerCase();
+  if (base === "third-party-notices" || base === "third-party-notices.cmd") {
+    return true;
+  }
+  if (resolvedArg.includes(`${path.sep}.bin${path.sep}`)) return true;
+  return false;
 }
 
-if (isDirectCliCall()) {
+if (isCliExecution()) {
   // eslint-disable-next-line unicorn/prefer-top-level-await
   runCli();
 }
