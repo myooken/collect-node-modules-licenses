@@ -1,24 +1,16 @@
 {
   "name": "@myooken/third-party-license-output-nodemodules",
   "version": "0.1.0",
-  "main": "index.js",
-  "files": [
-    "dist"
-  ],
+  "license": "MIT",
+  "type": "module",
   "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "require": "./dist/index.cjs"
-    }
+    ".": "./src/core.js"
   },
-  "scripts": {
-    "build": "tsup src/index.ts --format esm,cjs --dts --clean",
-    "prepublishOnly": "npm run build",
-    "lint": "node -e \"process.exit(0)\""
+  "bin": {
+    "third-party-notices": "./src/cli.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": ""
+  "files": ["src", "README.md", "LICENSE"],
+  "engines": {
+    "node": ">=18"
+  }
 }
