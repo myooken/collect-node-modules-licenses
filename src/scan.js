@@ -38,10 +38,7 @@ export async function gatherPackages(opts) {
 
     const anchor = makeAnchorId(key);
     const source = getRepositoryUrl(pkg);
-    const license =
-      typeof pkg.license === "string" && pkg.license.trim()
-        ? pkg.license
-        : null;
+    const license = formatLicense(pkg.license); // 文字列/オブジェクト/配列すべてを受け付ける
 
     const flags = [];
     if (!source) {
@@ -92,4 +89,45 @@ export async function gatherPackages(opts) {
     missingLicenseField: uniqSorted(missingLicenseField),
     seenCount: seen.size,
   };
+}
+
+// license フィールドを人間可読にまとめる（文字列/オブジェクト/配列に対応）
+function formatLicense(raw) {
+  const parts = [];
+
+  const pushMaybe = (v) => {
+    if (typeof v === "string" && v.trim()) parts.push(v.trim());
+  };
+
+  const handleObj = (licObj) => {
+    if (!licObj || typeof licObj !== "object") return;
+    const type =
+      typeof licObj.type === "string" && licObj.type.trim()
+        ? licObj.type.trim()
+        : "";
+    const url =
+      typeof licObj.url === "string" && licObj.url.trim()
+        ? licObj.url.trim()
+        : "";
+    if (type && url) {
+      parts.push(`${type} (${url})`);
+    } else {
+      pushMaybe(type);
+      pushMaybe(url);
+    }
+  };
+
+  if (typeof raw === "string") {
+    pushMaybe(raw);
+  } else if (Array.isArray(raw)) {
+    for (const lic of raw) {
+      if (typeof lic === "string") pushMaybe(lic);
+      else handleObj(lic);
+    }
+  } else {
+    handleObj(raw);
+  }
+
+  if (parts.length === 0) return null;
+  return [...new Set(parts)].join(" | ");
 }
