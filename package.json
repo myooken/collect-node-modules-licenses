@@ -1,0 +1,24 @@
+{
+  "name": "@myooken/third-party-license-output-nodemodules",
+  "version": "0.1.0",
+  "main": "index.js",
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format esm,cjs --dts --clean",
+    "prepublishOnly": "npm run build",
+    "lint": "node -e \"process.exit(0)\""
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": ""
+}
