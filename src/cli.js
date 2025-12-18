@@ -1,4 +1,5 @@
-// CLIエントリーポイント（パラメータ処理と出力のみ担当）
+#!/usr/bin/env node
+// CLIエントリーポイント（引数パースとファイル出力のみ担当）
 import fsp from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -75,7 +76,7 @@ export async function runCli(argv = process.argv.slice(2)) {
 }
 
 function isCliExecution() {
-  // npm bin/shim経由でも動くように、実ファイル一致だけでなく .bin/third-party-notices も許可
+  // npmの.binシム経由でも動くように、実ファイル一致だけでなく.bin配下も許可
   const argv1 = process.argv[1];
   if (!argv1) return false;
   const self = fileURLToPath(import.meta.url);
