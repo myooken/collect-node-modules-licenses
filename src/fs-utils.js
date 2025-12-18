@@ -2,7 +2,7 @@ import fsp from "node:fs/promises";
 import path from "node:path";
 import { LICENSE_LIKE_RE } from "./constants.js";
 
-// 文字コードを安全に判定してテキストを返す
+// 文字コードを判定しつつ文字列へデコードする
 export function decodeSmart(buf) {
   if (buf.length >= 2) {
     const b0 = buf[0];
@@ -36,7 +36,7 @@ export function decodeSmart(buf) {
   }
 }
 
-// LICENSE/NOTICEなどを探す
+// LICENSE/NOTICE などのライセンス系ファイルを探す
 export async function getLicenseLikeFilesInFolderRoot(pkgDir) {
   try {
     const ents = await fsp.readdir(pkgDir, { withFileTypes: true });
@@ -49,7 +49,7 @@ export async function getLicenseLikeFilesInFolderRoot(pkgDir) {
   }
 }
 
-// package.jsonを深さ優先で探す（node_modules/.binは除外）
+// package.json を深さ優先で探す（node_modules/.bin は除外）
 export async function* walkForPackageJson(rootDir) {
   const stack = [rootDir];
 
@@ -88,7 +88,7 @@ export async function readPackageJson(pjPath) {
   }
 }
 
-// BOM付きやUTF-16を考慮してテキストを読み込む
+// BOM や UTF-16 を考慮してテキストを読み込む
 export async function readTextFileSmart(filePath) {
   const buf = await fsp.readFile(filePath);
   return decodeSmart(buf);
@@ -102,7 +102,7 @@ export function uniqSorted(arr) {
   return [...new Set(arr)].sort();
 }
 
-// アンカー用の安全なIDを作る
+// アンカー用の安全な ID を作る
 export function makeAnchorId(key) {
   return (
     "pkg-" +

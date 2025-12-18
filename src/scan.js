@@ -9,7 +9,7 @@ import {
 } from "./fs-utils.js";
 import { getRepositoryUrl } from "./url.js";
 
-// node_modules内を走査してパッケージ情報を収集する
+// node_modules を走査してパッケージ情報を集約する
 export async function gatherPackages(opts) {
   const missingFiles = [];
   const missingSource = [];
