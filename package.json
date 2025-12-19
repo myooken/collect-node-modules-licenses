@@ -1,8 +1,28 @@
 {
   "name": "@myooken/third-party-license-output-nodemodules",
   "version": "0.1.0",
+  "description": "Generate THIRD-PARTY-NOTICES markdown by scanning licenses in node_modules.",
   "license": "MIT",
   "type": "module",
+
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/myooken/collect-node-modules-licenses.git"
+  },
+  "homepage": "https://github.com/myooken/collect-node-modules-licenses#readme",
+  "bugs": {
+    "url": "https://github.com/myooken/collect-node-modules-licenses/issues"
+  },
+  "keywords": [
+    "license",
+    "third-party",
+    "notices",
+    "node_modules",
+    "oss",
+    "compliance",
+    "cli"
+  ],
+
   "exports": {
     ".": "./src/core.js"
   },
