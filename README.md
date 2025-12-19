@@ -71,7 +71,7 @@ third-party-license --fail-on-missing
 ### Programmatic API
 
 ```js
-import { collectThirdPartyLicenses } from "@myooken/third-party-license-output-nodemodules";
+import { collectThirdPartyLicenses } from "@myooken/license-output";
 
 const result = await collectThirdPartyLicenses({
   nodeModules: "./node_modules",
