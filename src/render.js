@@ -42,7 +42,13 @@ export function renderMain(packages, opts) {
 }
 
 // レビューファイルを描画する
-export function renderReview(packages, opts, missingFiles, missingSource, missingLicenseField) {
+export function renderReview(
+  packages,
+  opts,
+  missingFiles,
+  missingSource,
+  missingLicenseField
+) {
   const lines = [];
   const push = (s = "") => lines.push(s);
   const mainBase = path.basename(opts.outFile);

@@ -82,7 +82,8 @@ export async function runCli(argv = process.argv.slice(2)) {
     const result = await collectThirdPartyLicenses(args);
 
     const dirsToEnsure = [];
-    if (result.options.writeMain) dirsToEnsure.push(ensureParentDir(result.options.outFile));
+    if (result.options.writeMain)
+      dirsToEnsure.push(ensureParentDir(result.options.outFile));
     if (result.options.writeReview) {
       dirsToEnsure.push(ensureParentDir(result.options.reviewFile));
     }
@@ -90,20 +91,24 @@ export async function runCli(argv = process.argv.slice(2)) {
 
     const writeTasks = [];
     if (result.options.writeMain) {
-      writeTasks.push(fsp.writeFile(result.options.outFile, result.mainContent, "utf8"));
+      writeTasks.push(
+        fsp.writeFile(result.options.outFile, result.mainContent, "utf8")
+      );
     }
     if (result.options.writeReview) {
       writeTasks.push(
-        fsp.writeFile(result.options.reviewFile, result.reviewContent, "utf8"),
+        fsp.writeFile(result.options.reviewFile, result.reviewContent, "utf8")
       );
     }
     await Promise.all(writeTasks);
 
-    if (result.options.writeMain) console.log(`Generated: ${result.options.outFile}`);
-    if (result.options.writeReview) console.log(`Review:    ${result.options.reviewFile}`);
+    if (result.options.writeMain)
+      console.log(`Generated: ${result.options.outFile}`);
+    if (result.options.writeReview)
+      console.log(`Review:    ${result.options.reviewFile}`);
     console.log(`Packages:  ${result.stats.packages}`);
     console.log(
-      `Missing LICENSE/NOTICE/COPYING: ${result.stats.missingFiles.length}`,
+      `Missing LICENSE/NOTICE/COPYING: ${result.stats.missingFiles.length}`
     );
 
     if (result.stats.missingFiles.length > 0 && result.options.failOnMissing) {
