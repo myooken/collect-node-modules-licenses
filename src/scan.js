@@ -67,7 +67,7 @@ export async function gatherPackages(opts) {
             licFiles.map(async (filePath) => ({
               name: path.basename(filePath),
               text: await readTextFileSmart(filePath),
-            })),
+            }))
           )
         : [];
 

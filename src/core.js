@@ -23,7 +23,7 @@ export async function collectThirdPartyLicenses(options = {}) {
     opts,
     result.missingFiles,
     result.missingSource,
-    result.missingLicenseField,
+    result.missingLicenseField
   );
 
   return {
@@ -44,14 +44,12 @@ export { DEFAULT_OPTIONS } from "./constants.js";
 function normalizeOptions(options) {
   return {
     nodeModules: path.resolve(
-      options.nodeModules ?? DEFAULT_OPTIONS.nodeModules,
+      options.nodeModules ?? DEFAULT_OPTIONS.nodeModules
     ),
     outFile: path.resolve(options.outFile ?? DEFAULT_OPTIONS.outFile),
-    reviewFile: path.resolve(
-      options.reviewFile ?? DEFAULT_OPTIONS.reviewFile,
-    ),
+    reviewFile: path.resolve(options.reviewFile ?? DEFAULT_OPTIONS.reviewFile),
     failOnMissing: Boolean(
-      options.failOnMissing ?? DEFAULT_OPTIONS.failOnMissing,
+      options.failOnMissing ?? DEFAULT_OPTIONS.failOnMissing
     ),
     writeMain: options.writeMain ?? true,
     writeReview: options.writeReview ?? true,
