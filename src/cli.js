@@ -5,8 +5,10 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { collectThirdPartyLicenses, DEFAULT_OPTIONS } from "./core.js";
 
+// 引数パース: --review / --license は最後に指定されたものを優先し、直後の値があれば出力ファイル名として扱う
 function parseArgs(argv) {
-  const args = { ...DEFAULT_OPTIONS, writeMain: true, writeReview: true };
+  const args = { ...DEFAULT_OPTIONS };
+  let outputMode = "both"; // "both" | "review" | "license"
 
   for (let i = 0; i < argv.length; i += 1) {
     const a = argv[i];
@@ -14,19 +16,17 @@ function parseArgs(argv) {
       args.nodeModules = argv[i + 1];
       i += 1;
     } else if (a === "--review") {
-      args.writeMain = false;
-      args.writeReview = true;
-      const maybeFile = argv[i + 1];
-      if (maybeFile && !maybeFile.startsWith("-")) {
-        args.reviewFile = maybeFile;
+      outputMode = "review";
+      const file = optionalValue(argv, i + 1);
+      if (file) {
+        args.reviewFile = file;
         i += 1;
       }
     } else if (a === "--license") {
-      args.writeMain = true;
-      args.writeReview = false;
-      const maybeFile = argv[i + 1];
-      if (maybeFile && !maybeFile.startsWith("-")) {
-        args.outFile = maybeFile;
+      outputMode = "license";
+      const file = optionalValue(argv, i + 1);
+      if (file) {
+        args.outFile = file;
         i += 1;
       }
     } else if (a === "--fail-on-missing") {
@@ -36,7 +36,29 @@ function parseArgs(argv) {
       process.exit(0);
     }
   }
+  applyOutputMode(outputMode, args);
   return args;
+}
+
+// オプションの直後にファイル名があれば取得（次のトークンが別オプションなら無視）
+function optionalValue(argv, idx) {
+  const v = argv[idx];
+  if (!v) return null;
+  return v.startsWith("-") ? null : v;
+}
+
+// 生成対象をまとめて決定（両方／レビューのみ／ライセンスのみ）
+function applyOutputMode(mode, args) {
+  if (mode === "review") {
+    args.writeMain = false;
+    args.writeReview = true;
+  } else if (mode === "license") {
+    args.writeMain = true;
+    args.writeReview = false;
+  } else {
+    args.writeMain = true;
+    args.writeReview = true;
+  }
 }
 
 function showHelp() {
