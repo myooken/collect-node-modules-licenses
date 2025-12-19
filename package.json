@@ -1,7 +1,7 @@
 {
   "name": "@myooken/license-output",
   "version": "0.1.0",
-  "description": "Generate THIRD-PARTY-NOTICES markdown by scanning licenses in node_modules.",
+  "description": "Generate third-party-license markdown by scanning licenses in node_modules.",
   "license": "MIT",
   "type": "module",
   "repository": {
@@ -25,7 +25,7 @@
     ".": "./src/core.js"
   },
   "bin": {
-    "third-party-notices": "./src/cli.js"
+    "third-party-license": "./src/cli.js"
   },
   "files": [
     "src",

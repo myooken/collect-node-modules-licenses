@@ -66,7 +66,7 @@ function applyOutputMode(mode, args) {
 
 function showHelp() {
   console.log(`Usage:
-  third-party-notices [--node-modules <dir>] [--review [file]] [--license [file]] [--fail-on-missing]
+  third-party-license [--node-modules <dir>] [--review [file]] [--license [file]] [--fail-on-missing]
 `);
 }
 
@@ -129,7 +129,7 @@ function isCliExecution() {
   if (resolvedArg === self) return true;
 
   const base = path.basename(resolvedArg).toLowerCase();
-  if (base === "third-party-notices" || base === "third-party-notices.cmd") {
+  if (base === "third-party-license" || base === "third-party-license.cmd") {
     return true;
   }
   if (resolvedArg.includes(`${path.sep}.bin${path.sep}`)) return true;
