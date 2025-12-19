@@ -12,9 +12,12 @@ function parseArgs(argv) {
 
   for (let i = 0; i < argv.length; i += 1) {
     const a = argv[i];
-    if ((a === "--node-modules" || a === "--nodeModules") && argv[i + 1]) {
-      args.nodeModules = argv[i + 1];
-      i += 1;
+    if (a === "--node-modules" || a === "--nodeModules") {
+      const dir = optionalValue(argv, i + 1);
+      if (dir) {
+        args.nodeModules = dir;
+        i += 1;
+      }
     } else if (a === "--review") {
       outputMode = "review";
       const file = optionalValue(argv, i + 1);
