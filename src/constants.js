@@ -4,7 +4,6 @@ export const DEFAULT_OPTIONS = {
   outFile: "THIRD-PARTY-LICENSE.md",
   reviewFile: "THIRD-PARTY-LICENSE-REVIEW.md",
   failOnMissing: false,
-  includeTexts: true,
 };
 
 // ライセンスらしいファイル名を検出する正規表現

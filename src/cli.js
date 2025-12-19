@@ -13,16 +13,8 @@ function parseArgs(argv) {
     if ((a === "--node-modules" || a === "--nodeModules") && argv[i + 1]) {
       args.nodeModules = argv[i + 1];
       i += 1;
-    } else if ((a === "--out" || a === "--outFile") && argv[i + 1]) {
-      args.outFile = argv[i + 1];
-      i += 1;
-    } else if ((a === "--review-out" || a === "--reviewFile") && argv[i + 1]) {
-      args.reviewFile = argv[i + 1];
-      i += 1;
     } else if (a === "--fail-on-missing") {
       args.failOnMissing = true;
-    } else if (a === "--no-texts") {
-      args.includeTexts = false;
     } else if (a === "-h" || a === "--help") {
       showHelp();
       process.exit(0);
@@ -33,8 +25,7 @@ function parseArgs(argv) {
 
 function showHelp() {
   console.log(`Usage:
-  third-party-notices [--node-modules <dir>] [--out <file>] [--review-out <file>]
-                      [--fail-on-missing] [--no-texts]
+  third-party-notices [--node-modules <dir>] [--fail-on-missing]
 `);
 }
 

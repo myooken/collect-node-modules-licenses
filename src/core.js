@@ -53,7 +53,6 @@ function normalizeOptions(options) {
     failOnMissing: Boolean(
       options.failOnMissing ?? DEFAULT_OPTIONS.failOnMissing,
     ),
-    includeTexts: options.includeTexts ?? DEFAULT_OPTIONS.includeTexts,
     warn: options.onWarn ?? defaultWarn,
   };
 }
