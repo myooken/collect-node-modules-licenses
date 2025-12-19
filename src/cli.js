@@ -5,36 +5,68 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { collectThirdPartyLicenses, DEFAULT_OPTIONS } from "./core.js";
 
+// 引数パース: --review / --license は最後に指定されたものを優先し、直後の値があれば出力ファイル名として扱う
 function parseArgs(argv) {
   const args = { ...DEFAULT_OPTIONS };
+  let outputMode = "both"; // "both" | "review" | "license"
 
   for (let i = 0; i < argv.length; i += 1) {
     const a = argv[i];
-    if ((a === "--node-modules" || a === "--nodeModules") && argv[i + 1]) {
-      args.nodeModules = argv[i + 1];
-      i += 1;
-    } else if ((a === "--out" || a === "--outFile") && argv[i + 1]) {
-      args.outFile = argv[i + 1];
-      i += 1;
-    } else if ((a === "--review-out" || a === "--reviewFile") && argv[i + 1]) {
-      args.reviewFile = argv[i + 1];
-      i += 1;
+    if (a === "--node-modules" || a === "--nodeModules") {
+      const dir = optionalValue(argv, i + 1);
+      if (dir) {
+        args.nodeModules = dir;
+        i += 1;
+      }
+    } else if (a === "--review") {
+      outputMode = "review";
+      const file = optionalValue(argv, i + 1);
+      if (file) {
+        args.reviewFile = file;
+        i += 1;
+      }
+    } else if (a === "--license") {
+      outputMode = "license";
+      const file = optionalValue(argv, i + 1);
+      if (file) {
+        args.outFile = file;
+        i += 1;
+      }
     } else if (a === "--fail-on-missing") {
       args.failOnMissing = true;
-    } else if (a === "--no-texts") {
-      args.includeTexts = false;
     } else if (a === "-h" || a === "--help") {
       showHelp();
       process.exit(0);
     }
   }
+  applyOutputMode(outputMode, args);
   return args;
+}
+
+// オプションの直後にファイル名があれば取得（次のトークンが別オプションなら無視）
+function optionalValue(argv, idx) {
+  const v = argv[idx];
+  if (!v) return null;
+  return v.startsWith("-") ? null : v;
+}
+
+// 生成対象をまとめて決定（両方／レビューのみ／ライセンスのみ）
+function applyOutputMode(mode, args) {
+  if (mode === "review") {
+    args.writeMain = false;
+    args.writeReview = true;
+  } else if (mode === "license") {
+    args.writeMain = true;
+    args.writeReview = false;
+  } else {
+    args.writeMain = true;
+    args.writeReview = true;
+  }
 }
 
 function showHelp() {
   console.log(`Usage:
-  third-party-notices [--node-modules <dir>] [--out <file>] [--review-out <file>]
-                      [--fail-on-missing] [--no-texts]
+  third-party-notices [--node-modules <dir>] [--review [file]] [--license [file]] [--fail-on-missing]
 `);
 }
 
@@ -49,18 +81,26 @@ export async function runCli(argv = process.argv.slice(2)) {
   try {
     const result = await collectThirdPartyLicenses(args);
 
-    await Promise.all([
-      ensureParentDir(result.options.outFile),
-      ensureParentDir(result.options.reviewFile),
-    ]);
+    const dirsToEnsure = [];
+    if (result.options.writeMain) dirsToEnsure.push(ensureParentDir(result.options.outFile));
+    if (result.options.writeReview) {
+      dirsToEnsure.push(ensureParentDir(result.options.reviewFile));
+    }
+    await Promise.all(dirsToEnsure);
 
-    await Promise.all([
-      fsp.writeFile(result.options.outFile, result.mainContent, "utf8"),
-      fsp.writeFile(result.options.reviewFile, result.reviewContent, "utf8"),
-    ]);
+    const writeTasks = [];
+    if (result.options.writeMain) {
+      writeTasks.push(fsp.writeFile(result.options.outFile, result.mainContent, "utf8"));
+    }
+    if (result.options.writeReview) {
+      writeTasks.push(
+        fsp.writeFile(result.options.reviewFile, result.reviewContent, "utf8"),
+      );
+    }
+    await Promise.all(writeTasks);
 
-    console.log(`Generated: ${result.options.outFile}`);
-    console.log(`Review:    ${result.options.reviewFile}`);
+    if (result.options.writeMain) console.log(`Generated: ${result.options.outFile}`);
+    if (result.options.writeReview) console.log(`Review:    ${result.options.reviewFile}`);
     console.log(`Packages:  ${result.stats.packages}`);
     console.log(
       `Missing LICENSE/NOTICE/COPYING: ${result.stats.missingFiles.length}`,

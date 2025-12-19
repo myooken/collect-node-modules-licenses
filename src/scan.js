@@ -62,7 +62,7 @@ export async function gatherPackages(opts) {
     }
 
     const licenseTexts =
-      opts.includeTexts && licFiles.length > 0
+      licFiles.length > 0
         ? await Promise.all(
             licFiles.map(async (filePath) => ({
               name: path.basename(filePath),

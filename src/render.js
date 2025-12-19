@@ -29,14 +29,12 @@ export function renderMain(packages, opts) {
     for (const n of pkg.fileNames) push(`- ${n}`);
     push("");
 
-    if (opts.includeTexts) {
-      for (const lic of pkg.licenseTexts) {
-        push(`### ${lic.name}`);
-        push("```text");
-        push(mdSafeText(lic.text).replace(/\s+$/, ""));
-        push("```");
-        push("");
-      }
+    for (const lic of pkg.licenseTexts) {
+      push(`### ${lic.name}`);
+      push("```text");
+      push(mdSafeText(lic.text).replace(/\s+$/, ""));
+      push("```");
+      push("");
     }
   }
 
