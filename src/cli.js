@@ -32,6 +32,10 @@ function parseArgs(argv) {
         args.outFile = file;
         i += 1;
       }
+    } else if (a === "--recreate") {
+      args.mode = "recreate";
+    } else if (a === "--update") {
+      args.mode = "update";
     } else if (a === "--fail-on-missing") {
       args.failOnMissing = true;
     } else if (a === "-h" || a === "--help") {
@@ -66,7 +70,7 @@ function applyOutputMode(mode, args) {
 
 function showHelp() {
   console.log(`Usage:
-  third-party-license [--node-modules <dir>] [--review [file]] [--license [file]] [--fail-on-missing]
+  third-party-license [--node-modules <dir>] [--review [file]] [--license [file]] [--recreate|--update] [--fail-on-missing]
 `);
 }
 

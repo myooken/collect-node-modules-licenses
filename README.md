@@ -37,21 +37,27 @@ third-party-license
 
 ### Options
 
-| Option                 | Description                                            | Default                         |
-| ---------------------- | ------------------------------------------------------ | ------------------------------- |
-| `--node-modules <dir>` | Path to `node_modules`                                 | `node_modules`                  |
-| `--review [file]`      | Write review file only; optional filename              | `THIRD-PARTY-LICENSE-REVIEW.md` |
-| `--license [file]`     | Write main file only; optional filename                | `THIRD-PARTY-LICENSE.md`        |
-| `--fail-on-missing`    | Exit with code 1 if LICENSE/NOTICE/COPYING are missing | `false`                         |
-| `-h`, `--help`         | Show help                                              | -                               |
+| Option                 | Description                                                                 | Default                         |
+| ---------------------- | --------------------------------------------------------------------------- | ------------------------------- |
+| `--node-modules <dir>` | Path to `node_modules`                                                      | `node_modules`                  |
+| `--review [file]`      | Write review file only; optional filename                                   | `THIRD-PARTY-LICENSE-REVIEW.md` |
+| `--license [file]`     | Write main file only; optional filename                                     | `THIRD-PARTY-LICENSE.md`        |
+| `--recreate`           | Regenerate files from current `node_modules` only (drops removed packages)  | `true` (default)                |
+| `--update`             | Merge with existing outputs, keep removed packages, and mark their presence | `false`                        |
+| `--fail-on-missing`    | Exit with code 1 if LICENSE/NOTICE/COPYING are missing                      | `false`                         |
+| `-h`, `--help`         | Show help                                                                   | -                               |
 
 > If neither `--review` nor `--license` is specified, **both files are generated**.
+> Packages in both files are sorted by name@version; `--update` keeps entries for packages no longer in `node_modules` and annotates their usage status.
 
 ### Examples
 
 ```bash
 # Default (both files)
 third-party-license
+
+# Update existing files without dropping removed packages
+third-party-license --update
 
 # Custom node_modules path
 third-party-license --node-modules ./path/to/node_modules
@@ -78,11 +84,14 @@ const result = await collectThirdPartyLicenses({
   outFile: "./THIRD-PARTY-LICENSE.md",
   reviewFile: "./THIRD-PARTY-LICENSE-REVIEW.md",
   failOnMissing: false,
+  // mode: "update", // keep packages missing from node_modules when updating files
 });
 
 console.log(result.mainContent);
 console.log(result.reviewContent);
 ```
+
+Outputs are sorted by package key. Use `mode: "update"` to merge with existing files and keep packages that are no longer in `node_modules`, with their usage shown in both outputs.
 
 ### Output overview
 
@@ -90,8 +99,10 @@ console.log(result.reviewContent);
   - List of packages
   - Source / License info
   - Full LICENSE/NOTICE/COPYING texts
+  - Usage line shows whether the package is present in the current `node_modules`
 - **THIRD-PARTY-LICENSE-REVIEW.md**
   - Review-oriented checklist
+  - Usage-aware status (present / not found) for each package
   - **Missing summary** section
 
 ### How it differs from typical npm license tools (general view)

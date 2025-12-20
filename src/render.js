@@ -17,8 +17,10 @@ export function renderMain(packages, opts) {
     push(`## ${pkg.key}`);
     push(`- Source: ${pkg.source ?? "(missing)"}`);
     push(`- License: ${pkg.license ?? "(missing)"}`);
+    push(`- Usage: ${describeUsage(pkg.usage)}`);
 
-    if (pkg.fileNames.length === 0) {
+    const fileNames = pkg.fileNames ?? [];
+    if (fileNames.length === 0) {
       push("- (no LICENSE/NOTICE/COPYING files)");
       push("");
       push("_No LICENSE/NOTICE/COPYING file found in package directory._");
@@ -26,10 +28,10 @@ export function renderMain(packages, opts) {
       continue;
     }
 
-    for (const n of pkg.fileNames) push(`- ${n}`);
+    for (const n of fileNames) push(`- ${n}`);
     push("");
 
-    for (const lic of pkg.licenseTexts) {
+    for (const lic of pkg.licenseTexts ?? []) {
       push(`### ${lic.name}`);
       push("```text");
       push(mdSafeText(lic.text).replace(/\s+$/, ""));
@@ -66,19 +68,26 @@ export function renderReview(
     push(`- License: ${it.license ?? "(missing)"}`);
 
     push("- Files:");
-    if (it.fileNames.length === 0) {
+    const fileNames = it.fileNames ?? [];
+    if (fileNames.length === 0) {
       push("  - (none)");
     } else {
-      for (const f of it.fileNames) push(`  - ${f}`);
+      for (const f of fileNames) push(`  - ${f}`);
     }
 
-    if (it.flags.length === 0) {
-      push("- Status: Check manually");
-    } else {
-      push(`- Status: ${it.flags.join(" / ")}`);
-    }
+    const statusParts = [describeUsage(it.usage), ...(it.flags ?? [])].filter(
+      Boolean
+    );
+    const status =
+      statusParts.length === 0 ? "Check manually" : statusParts.join(" / ");
+    push(`- Status: ${status}`);
 
     push("- Notes:");
+    if (it.notes && it.notes.length > 0) {
+      for (const line of it.notes.split(/\r?\n/)) {
+        push(`  ${line}`);
+      }
+    }
     push("");
   }
 
@@ -101,4 +110,11 @@ export function renderReview(
   writeList("Missing LICENSE/NOTICE/COPYING files", missingFiles);
 
   return lines.join(os.EOL) + os.EOL;
+}
+
+function describeUsage(usage) {
+  if (usage === "missing") {
+    return "Not found in node_modules (kept from previous output)";
+  }
+  return "Present in node_modules";
 }
