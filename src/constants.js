@@ -4,6 +4,7 @@ export const DEFAULT_OPTIONS = {
   outFile: "THIRD-PARTY-LICENSE.md",
   reviewFile: "THIRD-PARTY-LICENSE-REVIEW.md",
   failOnMissing: false,
+  mode: "recreate", // "recreate" | "update"
 };
 
 // ライセンスらしいファイル名を検出する正規表現
