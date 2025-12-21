@@ -1,5 +1,11 @@
 # Third-Party License Output for node_modules
 
+[![npm version](https://img.shields.io/npm/v/@myooken/license-output.svg)](https://www.npmjs.com/package/@myooken/license-output)
+[![npm downloads](https://img.shields.io/npm/dm/@myooken/license-output.svg)](https://www.npmjs.com/package/@myooken/license-output)
+[![node](https://img.shields.io/node/v/@myooken/license-output.svg)](https://www.npmjs.com/package/@myooken/license-output)
+
+https://www.npmjs.com/package/@myooken/license-output
+
 ### What is this?
 
 A tool to scan `node_modules` and **output third-party licenses in Markdown**.  
