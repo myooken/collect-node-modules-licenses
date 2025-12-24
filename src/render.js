@@ -1,4 +1,5 @@
 import os from "node:os";
+import path from "node:path";
 import { mdSafeText, uniqSorted } from "./fs-utils.js";
 import { LICENSE_FILES_LABEL } from "./constants.js";
 
@@ -53,7 +54,7 @@ export function renderReview(
 ) {
   const lines = [];
   const push = (s = "") => lines.push(s);
-  const mainPath = opts.outFileDisplay ?? opts.outFile;
+  const mainPath = makeMainLinkPath(opts);
 
   push("# THIRD-PARTY-LICENSE-REVIEW");
   push("");
@@ -110,6 +111,12 @@ export function renderReview(
   writeList(`Missing ${LICENSE_FILES_LABEL} files`, missingFiles);
 
   return lines.join(os.EOL) + os.EOL;
+}
+
+function makeMainLinkPath(opts) {
+  const baseDir = path.dirname(opts.reviewFile);
+  const rel = path.relative(baseDir, opts.outFile);
+  return rel || path.basename(opts.outFile);
 }
 
 function describeUsage(usage) {
