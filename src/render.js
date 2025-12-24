@@ -116,7 +116,8 @@ export function renderReview(
 function makeMainLinkPath(opts) {
   const baseDir = path.dirname(opts.reviewFile);
   const rel = path.relative(baseDir, opts.outFile);
-  return rel || path.basename(opts.outFile);
+  const normalized = rel.replace(/\\/g, "/");
+  return normalized || path.basename(opts.outFile);
 }
 
 function describeUsage(usage) {
