@@ -8,6 +8,7 @@ import {
   walkForPackageJson,
 } from "./fs-utils.js";
 import { getRepositoryUrl } from "./url.js";
+import { LICENSE_FILES_LABEL } from "./constants.js";
 
 // node_modules を走査してパッケージ情報を集約する
 export async function gatherPackages(opts) {
@@ -57,8 +58,9 @@ export async function gatherPackages(opts) {
 
     if (licFiles.length === 0) {
       missingFiles.push(key);
-      flags.push("Missing LICENSE/NOTICE/COPYING files");
-      opts.warn(`Missing LICENSE/NOTICE/COPYING in ${pkgDir} (${key})`);
+      const missingMsg = `Missing ${LICENSE_FILES_LABEL} files`;
+      flags.push(missingMsg);
+      opts.warn(`Missing ${LICENSE_FILES_LABEL} in ${pkgDir} (${key})`);
     }
 
     const licenseTexts =

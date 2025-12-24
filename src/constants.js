@@ -9,4 +9,7 @@ export const DEFAULT_OPTIONS = {
 
 // ライセンスらしいファイル名を検出する正規表現
 export const LICENSE_LIKE_RE =
-  /^(LICEN[CS]E|COPYING|NOTICE)(\..*)?$|^(LICEN[CS]E|COPYING|NOTICE)-/i;
+  /^(LICEN[CS]E|COPYING|NOTICE|THIRD[-_. ]?PARTY[-_. ]?NOTICES?)(\..*)?$|^(LICEN[CS]E|COPYING|NOTICE|THIRD[-_. ]?PARTY[-_. ]?NOTICES?)-/i;
+
+export const LICENSE_FILES_LABEL =
+  "LICENSE/NOTICE/THIRD-PARTY-NOTICES/COPYING";

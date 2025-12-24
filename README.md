@@ -14,7 +14,7 @@ It generates two files: `THIRD-PARTY-LICENSE.md` (main content) and `THIRD-PARTY
 ### Highlights
 
 - **ESM / Node.js 18+**, zero dependencies
-- **Outputs full license texts** from LICENSE/NOTICE/COPYING files
+- **Outputs full license texts** from LICENSE/NOTICE/THIRD-PARTY-NOTICES/COPYING files
 - **Review file** flags missing Source / license / license files
 - `--fail-on-missing` supports CI enforcement
 
@@ -50,7 +50,7 @@ third-party-license
 | `--license [file]`     | Write main file only; optional filename                                     | `THIRD-PARTY-LICENSE.md`        |
 | `--recreate`           | Regenerate files from current `node_modules` only (drops removed packages)  | `true` (default)                |
 | `--update`             | Merge with existing outputs, keep removed packages, and mark their presence | `false`                        |
-| `--fail-on-missing`    | Exit with code 1 if LICENSE/NOTICE/COPYING are missing                      | `false`                         |
+| `--fail-on-missing`    | Exit with code 1 if LICENSE/NOTICE/THIRD-PARTY-NOTICES/COPYING are missing  | `false`                         |
 | `-h`, `--help`         | Show help                                                                   | -                               |
 
 > If neither `--review` nor `--license` is specified, **both files are generated**.
@@ -104,7 +104,7 @@ Outputs are sorted by package key. Use `mode: "update"` to merge with existing f
 - **THIRD-PARTY-LICENSE.md**
   - List of packages
   - Source / License info
-  - Full LICENSE/NOTICE/COPYING texts
+  - Full LICENSE/NOTICE/THIRD-PARTY-NOTICES/COPYING texts
   - Usage line shows whether the package is present in the current `node_modules`
 - **THIRD-PARTY-LICENSE-REVIEW.md**
   - Review-oriented checklist
@@ -129,3 +129,4 @@ Outputs are sorted by package key. Use `mode: "update"` to merge with existing f
 - Exit code 1: missing license files when `--fail-on-missing` is set, or `node_modules` not found.
 - Throws an error if `node_modules` does not exist.
 - Missing `license` or `repository` fields are flagged in the review file.
+- Paths printed in outputs/logs are shown relative to the current working directory.
