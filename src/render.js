@@ -1,6 +1,7 @@
 import os from "node:os";
 import path from "node:path";
 import { mdSafeText, uniqSorted } from "./fs-utils.js";
+import { LICENSE_FILES_LABEL } from "./constants.js";
 
 // メインのTHIRD-PARTY-LICENSE.mdを描画する
 export function renderMain(packages, opts) {
@@ -9,7 +10,7 @@ export function renderMain(packages, opts) {
 
   push("# Third-Party Licenses");
   push("");
-  push(`Generated from: ${opts.nodeModules}`);
+  push(`Generated from: ${opts.nodeModulesDisplay ?? opts.nodeModules}`);
   push("");
 
   for (const pkg of packages) {
@@ -21,9 +22,9 @@ export function renderMain(packages, opts) {
 
     const fileNames = pkg.fileNames ?? [];
     if (fileNames.length === 0) {
-      push("- (no LICENSE/NOTICE/COPYING files)");
+      push(`- (no ${LICENSE_FILES_LABEL} files)`);
       push("");
-      push("_No LICENSE/NOTICE/COPYING file found in package directory._");
+      push(`_No ${LICENSE_FILES_LABEL} file found in package directory._`);
       push("");
       continue;
     }
@@ -53,17 +54,17 @@ export function renderReview(
 ) {
   const lines = [];
   const push = (s = "") => lines.push(s);
-  const mainBase = path.basename(opts.outFile);
+  const mainPath = makeMainLinkPath(opts);
 
   push("# THIRD-PARTY-LICENSE-REVIEW");
   push("");
-  push(`Generated from: ${opts.nodeModules}`);
-  push(`Main file: ${mainBase}`);
+  push(`Generated from: ${opts.nodeModulesDisplay ?? opts.nodeModules}`);
+  push(`Main file: ${mainPath}`);
   push("");
 
   for (const it of [...packages].sort((a, b) => a.key.localeCompare(b.key))) {
     push(`## ${it.key}`);
-    push(`- Main: ${mainBase}#${it.anchor}`);
+    push(`- Main: ${mainPath}#${it.anchor}`);
     push(`- Source: ${it.source ?? "(missing)"}`);
     push(`- License: ${it.license ?? "(missing)"}`);
 
@@ -107,9 +108,16 @@ export function renderReview(
 
   writeList("Missing Source", missingSource);
   writeList("Missing package.json license field", missingLicenseField);
-  writeList("Missing LICENSE/NOTICE/COPYING files", missingFiles);
+  writeList(`Missing ${LICENSE_FILES_LABEL} files`, missingFiles);
 
   return lines.join(os.EOL) + os.EOL;
+}
+
+function makeMainLinkPath(opts) {
+  const baseDir = path.dirname(opts.reviewFile);
+  const rel = path.relative(baseDir, opts.outFile);
+  const normalized = rel.replace(/\\/g, "/");
+  return normalized || path.basename(opts.outFile);
 }
 
 function describeUsage(usage) {
