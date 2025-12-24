@@ -1,5 +1,6 @@
 import fsp from "node:fs/promises";
 import { makeAnchorId, uniqSorted } from "./fs-utils.js";
+import { LICENSE_FILES_LABEL } from "./constants.js";
 
 export async function parseExistingMainFile(filePath) {
   const content = await readFileSafe(filePath);
@@ -82,7 +83,12 @@ function parseMainBlock(key, body) {
     ) {
       continue;
     }
-    if (val.startsWith("(no LICENSE/NOTICE/COPYING files)")) continue;
+    if (
+      val.startsWith("(no LICENSE/NOTICE/COPYING files)") ||
+      val.startsWith(`(no ${LICENSE_FILES_LABEL} files)`)
+    ) {
+      continue;
+    }
     fileNames.push(val);
   }
 

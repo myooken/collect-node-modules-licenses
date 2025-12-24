@@ -54,12 +54,22 @@ export async function collectThirdPartyLicenses(options = {}) {
 export { DEFAULT_OPTIONS } from "./constants.js";
 
 function normalizeOptions(options) {
+  const cwd = process.cwd();
+  const nodeModules = path.resolve(
+    options.nodeModules ?? DEFAULT_OPTIONS.nodeModules
+  );
+  const outFile = path.resolve(options.outFile ?? DEFAULT_OPTIONS.outFile);
+  const reviewFile = path.resolve(
+    options.reviewFile ?? DEFAULT_OPTIONS.reviewFile
+  );
+
   return {
-    nodeModules: path.resolve(
-      options.nodeModules ?? DEFAULT_OPTIONS.nodeModules
-    ),
-    outFile: path.resolve(options.outFile ?? DEFAULT_OPTIONS.outFile),
-    reviewFile: path.resolve(options.reviewFile ?? DEFAULT_OPTIONS.reviewFile),
+    nodeModules,
+    outFile,
+    reviewFile,
+    nodeModulesDisplay: makeDisplayPath(nodeModules, cwd),
+    outFileDisplay: makeDisplayPath(outFile, cwd),
+    reviewFileDisplay: makeDisplayPath(reviewFile, cwd),
     failOnMissing: Boolean(
       options.failOnMissing ?? DEFAULT_OPTIONS.failOnMissing
     ),
@@ -73,6 +83,11 @@ function normalizeOptions(options) {
 function normalizeMode(mode) {
   const m = typeof mode === "string" ? mode.toLowerCase() : "";
   return m === "update" ? "update" : DEFAULT_OPTIONS.mode;
+}
+
+function makeDisplayPath(targetPath, cwd) {
+  const rel = path.relative(cwd, targetPath);
+  return rel || ".";
 }
 
 async function assertNodeModulesExists(dir) {

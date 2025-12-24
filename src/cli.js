@@ -4,6 +4,7 @@ import fsp from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { collectThirdPartyLicenses, DEFAULT_OPTIONS } from "./core.js";
+import { LICENSE_FILES_LABEL } from "./constants.js";
 
 // 引数パース: --review / --license は最後に指定されたものを優先し、直後の値があれば出力ファイル名として扱う
 function parseArgs(argv) {
@@ -107,12 +108,18 @@ export async function runCli(argv = process.argv.slice(2)) {
     await Promise.all(writeTasks);
 
     if (result.options.writeMain)
-      console.log(`Generated: ${result.options.outFile}`);
+      console.log(
+        `Generated: ${result.options.outFileDisplay ?? result.options.outFile}`
+      );
     if (result.options.writeReview)
-      console.log(`Review:    ${result.options.reviewFile}`);
+      console.log(
+        `Review:    ${
+          result.options.reviewFileDisplay ?? result.options.reviewFile
+        }`
+      );
     console.log(`Packages:  ${result.stats.packages}`);
     console.log(
-      `Missing LICENSE/NOTICE/COPYING: ${result.stats.missingFiles.length}`
+      `Missing ${LICENSE_FILES_LABEL}: ${result.stats.missingFiles.length}`
     );
 
     if (result.stats.missingFiles.length > 0 && result.options.failOnMissing) {
