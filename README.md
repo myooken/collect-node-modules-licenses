@@ -14,7 +14,7 @@ It generates two files: `THIRD-PARTY-LICENSE.md` (main content) and `THIRD-PARTY
 ### Highlights
 
 - **ESM / Node.js 18+**, zero dependencies
-- **Outputs full license texts** from LICENSE/NOTICE/THIRD-PARTY-NOTICES/COPYING files
+- **Outputs full license texts** from LICENSE/NOTICE/COPYRIGHT/THIRD-PARTY-NOTICES/THIRD-PARTY-LICENSES/ThirdPartyNoticeText/ThirdPartyText/COPYING files
 - **Review file** flags missing Source / license / license files
 - `--fail-on-missing` supports CI enforcement
 
@@ -50,7 +50,7 @@ third-party-license
 | `--license [file]`     | Write main file only; optional filename                                     | `THIRD-PARTY-LICENSE.md`        |
 | `--recreate`           | Regenerate files from current `node_modules` only (drops removed packages)  | `true` (default)                |
 | `--update`             | Merge with existing outputs, keep removed packages, and mark their presence | `false`                        |
-| `--fail-on-missing`    | Exit with code 1 if LICENSE/NOTICE/THIRD-PARTY-NOTICES/COPYING are missing  | `false`                         |
+| `--fail-on-missing`    | Exit with code 1 if LICENSE/NOTICE/COPYRIGHT/THIRD-PARTY-NOTICES/THIRD-PARTY-LICENSES/ThirdPartyNoticeText/ThirdPartyText/COPYING are missing  | `false`                         |
 | `-h`, `--help`         | Show help                                                                   | -                               |
 
 > If neither `--review` nor `--license` is specified, **both files are generated**.
@@ -104,7 +104,7 @@ Outputs are sorted by package key. Use `mode: "update"` to merge with existing f
 - **THIRD-PARTY-LICENSE.md**
   - List of packages
   - Source / License info
-  - Full LICENSE/NOTICE/THIRD-PARTY-NOTICES/COPYING texts
+  - Full LICENSE/NOTICE/COPYRIGHT/THIRD-PARTY-NOTICES/THIRD-PARTY-LICENSES/ThirdPartyNoticeText/ThirdPartyText/COPYING texts
   - Usage line shows whether the package is present in the current `node_modules`
 - **THIRD-PARTY-LICENSE-REVIEW.md**
   - Review-oriented checklist
@@ -125,6 +125,7 @@ Outputs are sorted by package key. Use `mode: "update"` to merge with existing f
 ### Notes
 
 - Scans all packages under `node_modules` (including nested dependencies); license files are searched only in each package root directory.
+- Recognizes LICENSE, NOTICE, COPYRIGHT, THIRD-PARTY-NOTICES, THIRD-PARTY-LICENSES, ThirdPartyNoticeText/ThirdPartyText, and COPYING files (e.g., TypeScript's `ThirdPartyNoticeText.txt`).
 - Exit code 0: success.
 - Exit code 1: missing license files when `--fail-on-missing` is set, or `node_modules` not found.
 - Throws an error if `node_modules` does not exist.
