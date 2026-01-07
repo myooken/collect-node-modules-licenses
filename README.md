@@ -1,10 +1,6 @@
 # Third-Party License Output for node_modules
 
-[![npm version](https://img.shields.io/npm/v/@myooken/license-output.svg)](https://www.npmjs.com/package/@myooken/license-output)
-[![npm downloads](https://img.shields.io/npm/dm/@myooken/license-output.svg)](https://www.npmjs.com/package/@myooken/license-output)
-[![node](https://img.shields.io/node/v/@myooken/license-output.svg)](https://www.npmjs.com/package/@myooken/license-output)
-
-https://www.npmjs.com/package/@myooken/license-output
+https://www.npmjs.com/package/node-module-license-output
 
 ### What is this?
 
@@ -25,33 +21,33 @@ CLI command: `third-party-license`
 #### Run without installing (recommended)
 
 ```bash
-npx --package=@myooken/license-output -- third-party-license
+npx --package=node-module-license-output -- third-party-license
 ```
 
 #### Run via npm exec
 
 ```bash
-npm exec --package=@myooken/license-output -- third-party-license
+npm exec --package=node-module-license-output -- third-party-license
 ```
 
 #### Install globally
 
 ```bash
-npm i -g @myooken/license-output
+npm i -g node-module-license-output
 third-party-license
 ```
 
 ### Options
 
-| Option                 | Description                                                                 | Default                         |
-| ---------------------- | --------------------------------------------------------------------------- | ------------------------------- |
-| `--node-modules <dir>` | Path to `node_modules`                                                      | `node_modules`                  |
-| `--review [file]`      | Write review file only; optional filename                                   | `THIRD-PARTY-LICENSE-REVIEW.md` |
-| `--license [file]`     | Write main file only; optional filename                                     | `THIRD-PARTY-LICENSE.md`        |
-| `--recreate`           | Regenerate files from current `node_modules` only (drops removed packages)  | `true` (default)                |
-| `--update`             | Merge with existing outputs, keep removed packages, and mark their presence | `false`                        |
-| `--fail-on-missing`    | Exit with code 1 if LICENSE/NOTICE/COPYRIGHT/THIRD-PARTY-NOTICES/THIRD-PARTY-LICENSES/ThirdPartyNoticeText/ThirdPartyText/COPYING are missing  | `false`                         |
-| `-h`, `--help`         | Show help                                                                   | -                               |
+| Option                 | Description                                                                                                                                   | Default                         |
+| ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------- |
+| `--node-modules <dir>` | Path to `node_modules`                                                                                                                        | `node_modules`                  |
+| `--review [file]`      | Write review file only; optional filename                                                                                                     | `THIRD-PARTY-LICENSE-REVIEW.md` |
+| `--license [file]`     | Write main file only; optional filename                                                                                                       | `THIRD-PARTY-LICENSE.md`        |
+| `--recreate`           | Regenerate files from current `node_modules` only (drops removed packages)                                                                    | `true` (default)                |
+| `--update`             | Merge with existing outputs, keep removed packages, and mark their presence                                                                   | `false`                         |
+| `--fail-on-missing`    | Exit with code 1 if LICENSE/NOTICE/COPYRIGHT/THIRD-PARTY-NOTICES/THIRD-PARTY-LICENSES/ThirdPartyNoticeText/ThirdPartyText/COPYING are missing | `false`                         |
+| `-h`, `--help`         | Show help                                                                                                                                     | -                               |
 
 > If neither `--review` nor `--license` is specified, **both files are generated**.
 > Packages in both files are sorted by name@version; `--update` keeps entries for packages no longer in `node_modules` and annotates their usage status.
@@ -83,7 +79,7 @@ third-party-license --fail-on-missing
 ### Programmatic API
 
 ```js
-import { collectThirdPartyLicenses } from "@myooken/license-output";
+import { collectThirdPartyLicenses } from "node-module-license-output";
 
 const result = await collectThirdPartyLicenses({
   nodeModules: "./node_modules",

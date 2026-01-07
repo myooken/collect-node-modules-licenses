@@ -1,5 +1,5 @@
 {
-  "name": "@myooken/license-output",
+  "name": "node-module-license-output",
   "version": "0.3.0",
   "description": "Generate third-party-license markdown by scanning licenses in node_modules.",
   "license": "MIT",
