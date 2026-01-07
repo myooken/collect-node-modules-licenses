@@ -1,5 +1,7 @@
 # Third-Party License Output for node_modules
 
+Renamed from @myooken/license-output
+
 https://www.npmjs.com/package/node-module-license-output
 
 ### What is this?
