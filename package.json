@@ -1,6 +1,6 @@
 {
   "name": "node-module-license-output",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Generate third-party-license markdown by scanning licenses in node_modules.",
   "license": "MIT",
   "type": "module",
