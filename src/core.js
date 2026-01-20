@@ -73,6 +73,9 @@ function normalizeOptions(options) {
     failOnMissing: Boolean(
       options.failOnMissing ?? DEFAULT_OPTIONS.failOnMissing
     ),
+    dependenciesOnly: Boolean(
+      options.dependenciesOnly ?? DEFAULT_OPTIONS.dependenciesOnly
+    ),
     writeMain: options.writeMain ?? true,
     writeReview: options.writeReview ?? true,
     warn: options.onWarn ?? defaultWarn,

@@ -49,10 +49,13 @@ third-party-license
 | `--recreate`           | Regenerate files from current `node_modules` only (drops removed packages)                                                                    | `true` (default)                |
 | `--update`             | Merge with existing outputs, keep removed packages, and mark their presence                                                                   | `false`                         |
 | `--fail-on-missing`    | Exit with code 1 if LICENSE/NOTICE/COPYRIGHT/THIRD-PARTY-NOTICES/THIRD-PARTY-LICENSES/ThirdPartyNoticeText/ThirdPartyText/COPYING are missing | `false`                         |
+| `--dependencies-only`  | Limit output to dependency tree rooted at `dependencies` (and `optionalDependencies`) in the project `package.json`                          | `true` (default)                |
+| `--dependencies-all`   | Scan all packages under `node_modules`                                                                                                       | `false`                         |
 | `-h`, `--help`         | Show help                                                                                                                                     | -                               |
 
 > If neither `--review` nor `--license` is specified, **both files are generated**.
 > Packages in both files are sorted by name@version; `--update` keeps entries for packages no longer in `node_modules` and annotates their usage status.
+> `--dependencies-only` reads the `package.json` next to the target `node_modules`; it throws if not found.
 
 ### Examples
 
@@ -76,6 +79,12 @@ third-party-license --license ./out/THIRD-PARTY-LICENSE.md
 
 # Exit with code 1 when something is missing (with --fail-on-missing)
 third-party-license --fail-on-missing
+
+# Limit output to dependency tree from package.json dependencies
+third-party-license --dependencies-only
+
+# Scan all packages under node_modules
+third-party-license --dependencies-all
 ```
 
 ### Programmatic API
@@ -88,6 +97,7 @@ const result = await collectThirdPartyLicenses({
   outFile: "./THIRD-PARTY-LICENSE.md",
   reviewFile: "./THIRD-PARTY-LICENSE-REVIEW.md",
   failOnMissing: false,
+  dependenciesOnly: true,
   // mode: "update", // keep packages missing from node_modules when updating files
 });
 
