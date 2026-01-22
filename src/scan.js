@@ -86,7 +86,15 @@ function disambiguateDuplicateKeys(packages, nodeModulesRoot) {
       const label = makePackagePathLabel(pkg.dir, nodeModulesRoot);
       const key = `${pkg.baseKey} (${label})`;
       pkg.key = key;
-      pkg.anchor = makeAnchorId(key);
+      pkg.anchor = `${makeAnchorId(key)}-${hashPathSuffix(pkg.dir)}`;
     }
   }
+}
+
+function hashPathSuffix(dir) {
+  let hash = 5381;
+  for (let i = 0; i < dir.length; i += 1) {
+    hash = (hash * 33) ^ dir.charCodeAt(i);
+  }
+  return (hash >>> 0).toString(36);
 }
