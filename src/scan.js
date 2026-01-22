@@ -10,6 +10,7 @@ import {
   makePackagePathLabel,
 } from "./dependency-tree.js";
 import { buildPackageEntry } from "./package-entry.js";
+import { LICENSE_FILES_LABEL } from "./constants.js";
 // node_modules を走査してパッケージ情報を集約する
 export async function gatherPackages(opts) {
   const allowedDirs = opts.dependenciesOnly
@@ -25,7 +26,7 @@ export async function gatherPackages(opts) {
     const ident = getPackageIdentity(pkg);
     if (!ident) continue;
     const baseKey = `${ident.name}@${ident.version}`;
-    const seenKey = allowedDirs ? pkgDir : baseKey;
+    const seenKey = pkgDir;
     if (seen.has(seenKey)) continue;
     seen.add(seenKey);
     const key = baseKey;
@@ -36,20 +37,32 @@ export async function gatherPackages(opts) {
       key,
       baseKey,
       anchor,
-      opts,
     });
     packages.push(entry);
   }
 
   // dependency-only で同名同バージョンが複数ある場合はパスで区別する
   if (allowedDirs) disambiguateDuplicateKeys(packages, opts.nodeModules);
+  for (const pkg of packages) {
+    pkg.anchor = makeAnchorId(pkg.key);
+  }
+  ensureUniqueAnchors(packages);
   const missingFiles = [];
   const missingSource = [];
   const missingLicenseField = [];
   for (const pkg of packages) {
-    if (pkg.missing?.licenseFiles) missingFiles.push(pkg.key);
-    if (pkg.missing?.source) missingSource.push(pkg.key);
-    if (pkg.missing?.licenseField) missingLicenseField.push(pkg.key);
+    if (pkg.missing?.licenseFiles) {
+      missingFiles.push(pkg.key);
+      opts.warn(`Missing ${LICENSE_FILES_LABEL} in ${pkg.dir} (${pkg.key})`);
+    }
+    if (pkg.missing?.source) {
+      missingSource.push(pkg.key);
+      opts.warn(`Unknown source: ${pkg.key}`);
+    }
+    if (pkg.missing?.licenseField) {
+      missingLicenseField.push(pkg.key);
+      opts.warn(`Missing license in package.json: ${pkg.key}`);
+    }
   }
   return {
     packages,
@@ -86,7 +99,6 @@ function disambiguateDuplicateKeys(packages, nodeModulesRoot) {
       const label = makePackagePathLabel(pkg.dir, nodeModulesRoot);
       const key = `${pkg.baseKey} (${label})`;
       pkg.key = key;
-      pkg.anchor = `${makeAnchorId(key)}-${hashPathSuffix(pkg.dir)}`;
     }
   }
 }
@@ -97,4 +109,20 @@ function hashPathSuffix(dir) {
     hash = (hash * 33) ^ dir.charCodeAt(i);
   }
   return (hash >>> 0).toString(36);
+}
+
+function ensureUniqueAnchors(packages) {
+  const groups = new Map();
+  for (const pkg of packages) {
+    const list = groups.get(pkg.anchor) ?? [];
+    list.push(pkg);
+    groups.set(pkg.anchor, list);
+  }
+
+  for (const list of groups.values()) {
+    if (list.length < 2) continue;
+    for (const pkg of list) {
+      pkg.anchor = `${pkg.anchor}-${hashPathSuffix(pkg.dir)}`;
+    }
+  }
 }

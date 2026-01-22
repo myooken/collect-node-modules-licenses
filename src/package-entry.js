@@ -14,7 +14,6 @@ export async function buildPackageEntry({
   key,
   baseKey,
   anchor,
-  opts,
 }) {
   const source = getRepositoryUrl(pkg);
   const license = formatLicense(pkg.license);
@@ -28,12 +27,10 @@ export async function buildPackageEntry({
   if (!source) {
     missing.source = true;
     flags.push("Missing Source");
-    opts.warn(`Unknown source: ${key}`);
   }
   if (!license) {
     missing.licenseField = true;
     flags.push("Missing package.json license");
-    opts.warn(`Missing license in package.json: ${key}`);
   }
 
   const licFiles = await getLicenseLikeFilesInFolderRoot(pkgDir);
@@ -43,7 +40,6 @@ export async function buildPackageEntry({
     missing.licenseFiles = true;
     const missingMsg = `Missing ${LICENSE_FILES_LABEL} files`;
     flags.push(missingMsg);
-    opts.warn(`Missing ${LICENSE_FILES_LABEL} in ${pkgDir} (${key})`);
   }
 
   const licenseTexts =
