@@ -15,6 +15,8 @@ It generates two files: `THIRD-PARTY-LICENSE.md` (main content) and `THIRD-PARTY
 - **Outputs full license texts** from LICENSE/NOTICE/COPYRIGHT/THIRD-PARTY-NOTICES/THIRD-PARTY-LICENSES/ThirdPartyNoticeText/ThirdPartyText/COPYING files
 - **Review file** flags missing Source / license / license files
 - `--fail-on-missing` supports CI enforcement
+- Requires a `package.json` next to the target `node_modules` when using `--dependencies-only`
+- Intended for npm/pnpm usage (node_modules layout)
 
 CLI command: `third-party-license`
 
@@ -137,6 +139,7 @@ Outputs are sorted by package key. Use `mode: "update"` to merge with existing f
 - Default output is restricted to the dependency tree from `dependencies` and `optionalDependencies`.
 - Use `--dependencies-all` to scan all packages under `node_modules` (including nested dependencies).
 - License files are searched only in each package root directory.
+- If multiple copies of the same name@version exist, dependency-only output disambiguates them by path.
 - Recognizes LICENSE, NOTICE, COPYRIGHT, THIRD-PARTY-NOTICES, THIRD-PARTY-LICENSES, ThirdPartyNoticeText/ThirdPartyText, and COPYING files (e.g., TypeScript's `ThirdPartyNoticeText.txt`).
 - Exit code 0: success.
 - Exit code 1: missing license files when `--fail-on-missing` is set, or `node_modules` not found.
