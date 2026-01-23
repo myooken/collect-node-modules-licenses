@@ -64,7 +64,7 @@ export async function collectDependencyDirs(opts) {
 }
 // node_modules からの相対パスで同名同バージョンの区別をつける
 export function makePackagePathLabel(pkgDir, nodeModulesRoot) {
-  const rel = path.relative(nodeModulesRoot, pkgDir);
+  const rel = path.relative(nodeModulesRoot, pkgDir).replace(/\\/g, "/");
   return rel || path.basename(pkgDir);
 }
 function collectDependencyNames(pkg) {

@@ -30,23 +30,21 @@ export async function gatherPackages(opts) {
     if (seen.has(seenKey)) continue;
     seen.add(seenKey);
     const key = baseKey;
-    const anchor = makeAnchorId(key);
     const { entry } = await buildPackageEntry({
       pkg,
       pkgDir,
       key,
       baseKey,
-      anchor,
     });
     packages.push(entry);
   }
 
-  // dependency-only で同名同バージョンが複数ある場合はパスで区別する
-  if (allowedDirs) disambiguateDuplicateKeys(packages, opts.nodeModules);
+  // 同名同バージョンが複数ある場合はパスで区別する
+  disambiguateDuplicateKeys(packages, opts.nodeModules);
   for (const pkg of packages) {
     pkg.anchor = makeAnchorId(pkg.key);
   }
-  ensureUniqueAnchors(packages);
+  ensureUniqueAnchors(packages, opts.nodeModules);
   const missingFiles = [];
   const missingSource = [];
   const missingLicenseField = [];
@@ -103,15 +101,15 @@ function disambiguateDuplicateKeys(packages, nodeModulesRoot) {
   }
 }
 
-function hashPathSuffix(dir) {
+function hashStableSuffix(value) {
   let hash = 5381;
-  for (let i = 0; i < dir.length; i += 1) {
-    hash = (hash * 33) ^ dir.charCodeAt(i);
+  for (let i = 0; i < value.length; i += 1) {
+    hash = (hash * 33) ^ value.charCodeAt(i);
   }
   return (hash >>> 0).toString(36);
 }
 
-function ensureUniqueAnchors(packages) {
+function ensureUniqueAnchors(packages, nodeModulesRoot) {
   const groups = new Map();
   for (const pkg of packages) {
     const list = groups.get(pkg.anchor) ?? [];
@@ -122,7 +120,8 @@ function ensureUniqueAnchors(packages) {
   for (const list of groups.values()) {
     if (list.length < 2) continue;
     for (const pkg of list) {
-      pkg.anchor = `${pkg.anchor}-${hashPathSuffix(pkg.dir)}`;
+      const label = makePackagePathLabel(pkg.dir, nodeModulesRoot);
+      pkg.anchor = `${pkg.anchor}-${hashStableSuffix(label)}`;
     }
   }
 }

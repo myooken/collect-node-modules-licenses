@@ -13,7 +13,6 @@ export async function buildPackageEntry({
   pkgDir,
   key,
   baseKey,
-  anchor,
 }) {
   const source = getRepositoryUrl(pkg);
   const license = formatLicense(pkg.license);
@@ -56,7 +55,6 @@ export async function buildPackageEntry({
     entry: {
       key,
       baseKey: baseKey ?? key,
-      anchor,
       source,
       license,
       fileNames,
