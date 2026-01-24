@@ -57,8 +57,9 @@ third-party-license
 
 > If neither `--review` nor `--license` is specified, **both files are generated**.
 > Packages in both files are sorted by name@version; `--update` keeps entries for packages no longer in `node_modules` and annotates their usage status.
-> `--dependencies-only` reads the `package.json` next to the target `node_modules` and limits output to the dependency tree rooted at `dependencies` and `optionalDependencies`; it throws if that `package.json` is not found.
+> `--dependencies-only` reads the `package.json` next to the target `node_modules` and limits output to the dependency tree rooted at `dependencies` and `optionalDependencies` (not `devDependencies` or `peerDependencies`); it throws if that `package.json` is not found.
 > Operationally, the default (`--dependencies-only`) is intended for day-to-day use, while `--dependencies-all` is intended for SBOM-like, exhaustive reporting.
+> When duplicates are disambiguated by path, `--update` may treat path-changed entries as new.
 
 ### Examples
 
@@ -140,6 +141,7 @@ Outputs are sorted by package key. Use `mode: "update"` to merge with existing f
 - Use `--dependencies-all` to scan all packages under `node_modules` (including nested dependencies).
 - License files are searched only in each package root directory.
 - If multiple copies of the same name@version exist, dependency-only output disambiguates them by path.
+- pnpm installs may be resolved via `.pnpm` directories under `node_modules`; this tool follows resolved package paths rather than only direct `node_modules/<pkg>` locations.
 - Recognizes LICENSE, NOTICE, COPYRIGHT, THIRD-PARTY-NOTICES, THIRD-PARTY-LICENSES, ThirdPartyNoticeText/ThirdPartyText, and COPYING files (e.g., TypeScript's `ThirdPartyNoticeText.txt`).
 - Exit code 0: success.
 - Exit code 1: missing license files when `--fail-on-missing` is set, or `node_modules` not found.
