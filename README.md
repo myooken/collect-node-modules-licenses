@@ -57,8 +57,9 @@ third-party-license
 
 > If neither `--review` nor `--license` is specified, **both files are generated**.
 > Packages in both files are sorted by name@version; `--update` keeps entries for packages no longer in `node_modules` and annotates their usage status.
-> `--dependencies-only` reads the `package.json` next to the target `node_modules` and limits output to the dependency tree rooted at `dependencies` and `optionalDependencies`; it throws if that `package.json` is not found.
+> `--dependencies-only` reads the `package.json` next to the target `node_modules` and limits output to the dependency tree rooted at `dependencies` and `optionalDependencies` (not `devDependencies` or `peerDependencies`); it throws if that `package.json` is not found.
 > Operationally, the default (`--dependencies-only`) is intended for day-to-day use, while `--dependencies-all` is intended for SBOM-like, exhaustive reporting.
+> When duplicates are disambiguated by path, `--update` may treat path-changed entries as new.
 
 ### Examples
 
