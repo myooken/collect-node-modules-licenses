@@ -1,89 +1,67 @@
 import path from "node:path";
 import {
-  getLicenseLikeFilesInFolderRoot,
   makeAnchorId,
   readPackageJson,
-  readTextFileSmart,
   uniqSorted,
   walkForPackageJson,
 } from "./fs-utils.js";
-import { getRepositoryUrl } from "./url.js";
+import {
+  collectDependencyDirs,
+  makePackagePathLabel,
+} from "./dependency-tree.js";
+import { buildPackageEntry } from "./package-entry.js";
 import { LICENSE_FILES_LABEL } from "./constants.js";
-
 // node_modules を走査してパッケージ情報を集約する
 export async function gatherPackages(opts) {
+  const allowedDirs = opts.dependenciesOnly
+    ? await collectDependencyDirs(opts)
+    : null;
+  const packages = [];
+  const seen = new Set();
+  for await (const pj of walkForPackageJson(opts.nodeModules)) {
+    const pkgDir = path.dirname(pj);
+    if (allowedDirs && !allowedDirs.has(pkgDir)) continue;
+    const pkg = await readPackageJson(pj);
+    if (!pkg) continue;
+    const ident = getPackageIdentity(pkg);
+    if (!ident) continue;
+    const baseKey = `${ident.name}@${ident.version}`;
+    const seenKey = pkgDir;
+    if (seen.has(seenKey)) continue;
+    seen.add(seenKey);
+    const key = baseKey;
+    const { entry } = await buildPackageEntry({
+      pkg,
+      pkgDir,
+      key,
+      baseKey,
+    });
+    packages.push(entry);
+  }
+
+  // 同名同バージョンが複数ある場合はパスで区別する
+  disambiguateDuplicateKeys(packages, opts.nodeModules);
+  for (const pkg of packages) {
+    pkg.anchor = makeAnchorId(pkg.key);
+  }
+  ensureUniqueAnchors(packages, opts.nodeModules);
   const missingFiles = [];
   const missingSource = [];
   const missingLicenseField = [];
-  const packages = [];
-  const seen = new Set();
-
-  for await (const pj of walkForPackageJson(opts.nodeModules)) {
-    const pkgDir = path.dirname(pj);
-    const pkg = await readPackageJson(pj);
-    if (!pkg) continue;
-
-    const name =
-      typeof pkg.name === "string" && pkg.name.trim().length > 0
-        ? pkg.name.trim()
-        : "";
-    const version =
-      typeof pkg.version === "string" && pkg.version.trim().length > 0
-        ? pkg.version.trim()
-        : "";
-    if (!name || !version) continue;
-
-    const key = `${name}@${version}`;
-    if (seen.has(key)) continue;
-    seen.add(key);
-
-    const anchor = makeAnchorId(key);
-    const source = getRepositoryUrl(pkg);
-    const license = formatLicense(pkg.license); // 文字列/オブジェクト/配列すべてを受け付ける
-
-    const flags = [];
-    if (!source) {
-      missingSource.push(key);
-      flags.push("Missing Source");
-      opts.warn(`Unknown source: ${key}`);
+  for (const pkg of packages) {
+    if (pkg.missing?.licenseFiles) {
+      missingFiles.push(pkg.key);
+      opts.warn(`Missing ${LICENSE_FILES_LABEL} in ${pkg.dir} (${pkg.key})`);
     }
-    if (!license) {
-      missingLicenseField.push(key);
-      flags.push("Missing package.json license");
-      opts.warn(`Missing license in package.json: ${key}`);
+    if (pkg.missing?.source) {
+      missingSource.push(pkg.key);
+      opts.warn(`Unknown source: ${pkg.key}`);
     }
-
-    const licFiles = await getLicenseLikeFilesInFolderRoot(pkgDir);
-    const fileNames = licFiles.map((f) => path.basename(f));
-
-    if (licFiles.length === 0) {
-      missingFiles.push(key);
-      const missingMsg = `Missing ${LICENSE_FILES_LABEL} files`;
-      flags.push(missingMsg);
-      opts.warn(`Missing ${LICENSE_FILES_LABEL} in ${pkgDir} (${key})`);
+    if (pkg.missing?.licenseField) {
+      missingLicenseField.push(pkg.key);
+      opts.warn(`Missing license in package.json: ${pkg.key}`);
     }
-
-    const licenseTexts =
-      licFiles.length > 0
-        ? await Promise.all(
-            licFiles.map(async (filePath) => ({
-              name: path.basename(filePath),
-              text: await readTextFileSmart(filePath),
-            }))
-          )
-        : [];
-
-    packages.push({
-      key,
-      anchor,
-      source,
-      license,
-      fileNames,
-      flags,
-      licenseTexts,
-    });
   }
-
   return {
     packages,
     missingFiles: uniqSorted(missingFiles),
@@ -92,44 +70,58 @@ export async function gatherPackages(opts) {
     seenCount: seen.size,
   };
 }
+function getPackageIdentity(pkg) {
+  const name =
+    typeof pkg.name === "string" && pkg.name.trim().length > 0
+      ? pkg.name.trim()
+      : "";
+  const version =
+    typeof pkg.version === "string" && pkg.version.trim().length > 0
+      ? pkg.version.trim()
+      : "";
+  if (!name || !version) return null;
+  return { name, version };
+}
 
-// license フィールドを人間可読にまとめる（文字列/オブジェクト/配列に対応）
-function formatLicense(raw) {
-  const parts = [];
-
-  const pushMaybe = (v) => {
-    if (typeof v === "string" && v.trim()) parts.push(v.trim());
-  };
-
-  const handleObj = (licObj) => {
-    if (!licObj || typeof licObj !== "object") return;
-    const type =
-      typeof licObj.type === "string" && licObj.type.trim()
-        ? licObj.type.trim()
-        : "";
-    const url =
-      typeof licObj.url === "string" && licObj.url.trim()
-        ? licObj.url.trim()
-        : "";
-    if (type && url) {
-      parts.push(`${type} (${url})`);
-    } else {
-      pushMaybe(type);
-      pushMaybe(url);
-    }
-  };
-
-  if (typeof raw === "string") {
-    pushMaybe(raw);
-  } else if (Array.isArray(raw)) {
-    for (const lic of raw) {
-      if (typeof lic === "string") pushMaybe(lic);
-      else handleObj(lic);
-    }
-  } else {
-    handleObj(raw);
+function disambiguateDuplicateKeys(packages, nodeModulesRoot) {
+  const groups = new Map();
+  for (const pkg of packages) {
+    const list = groups.get(pkg.baseKey) ?? [];
+    list.push(pkg);
+    groups.set(pkg.baseKey, list);
   }
 
-  if (parts.length === 0) return null;
-  return [...new Set(parts)].join(" | ");
+  for (const list of groups.values()) {
+    if (list.length < 2) continue;
+    for (const pkg of list) {
+      const label = makePackagePathLabel(pkg.dir, nodeModulesRoot);
+      const key = `${pkg.baseKey} (${label})`;
+      pkg.key = key;
+    }
+  }
+}
+
+function hashStableSuffix(value) {
+  let hash = 5381;
+  for (let i = 0; i < value.length; i += 1) {
+    hash = (hash * 33) ^ value.charCodeAt(i);
+  }
+  return (hash >>> 0).toString(36);
+}
+
+function ensureUniqueAnchors(packages, nodeModulesRoot) {
+  const groups = new Map();
+  for (const pkg of packages) {
+    const list = groups.get(pkg.anchor) ?? [];
+    list.push(pkg);
+    groups.set(pkg.anchor, list);
+  }
+
+  for (const list of groups.values()) {
+    if (list.length < 2) continue;
+    for (const pkg of list) {
+      const label = makePackagePathLabel(pkg.dir, nodeModulesRoot);
+      pkg.anchor = `${pkg.anchor}-${hashStableSuffix(label)}`;
+    }
+  }
 }

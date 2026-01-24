@@ -5,6 +5,7 @@ export const DEFAULT_OPTIONS = {
   reviewFile: "THIRD-PARTY-LICENSE-REVIEW.md",
   failOnMissing: false,
   mode: "recreate", // "recreate" | "update"
+  dependenciesOnly: true,
 };
 
 // ライセンスらしいファイル名を検出する正規表現

@@ -1,6 +1,6 @@
 # Third-Party License Output for node_modules
 
-Renamed from @myooken/license-output
+Package name: node-module-license-output
 
 https://www.npmjs.com/package/node-module-license-output
 
@@ -15,6 +15,8 @@ It generates two files: `THIRD-PARTY-LICENSE.md` (main content) and `THIRD-PARTY
 - **Outputs full license texts** from LICENSE/NOTICE/COPYRIGHT/THIRD-PARTY-NOTICES/THIRD-PARTY-LICENSES/ThirdPartyNoticeText/ThirdPartyText/COPYING files
 - **Review file** flags missing Source / license / license files
 - `--fail-on-missing` supports CI enforcement
+- Requires a `package.json` next to the target `node_modules` when using `--dependencies-only`
+- Intended for npm/pnpm usage (node_modules layout)
 
 CLI command: `third-party-license`
 
@@ -49,10 +51,14 @@ third-party-license
 | `--recreate`           | Regenerate files from current `node_modules` only (drops removed packages)                                                                    | `true` (default)                |
 | `--update`             | Merge with existing outputs, keep removed packages, and mark their presence                                                                   | `false`                         |
 | `--fail-on-missing`    | Exit with code 1 if LICENSE/NOTICE/COPYRIGHT/THIRD-PARTY-NOTICES/THIRD-PARTY-LICENSES/ThirdPartyNoticeText/ThirdPartyText/COPYING are missing | `false`                         |
+| `--dependencies-only`  | Limit output to dependency tree rooted at `dependencies` (and `optionalDependencies`) in the project `package.json`                          | `true` (default)                |
+| `--dependencies-all`   | Scan all packages under `node_modules`                                                                                                       | `false`                         |
 | `-h`, `--help`         | Show help                                                                                                                                     | -                               |
 
 > If neither `--review` nor `--license` is specified, **both files are generated**.
 > Packages in both files are sorted by name@version; `--update` keeps entries for packages no longer in `node_modules` and annotates their usage status.
+> `--dependencies-only` reads the `package.json` next to the target `node_modules` and limits output to the dependency tree rooted at `dependencies` and `optionalDependencies`; it throws if that `package.json` is not found.
+> Operationally, the default (`--dependencies-only`) is intended for day-to-day use, while `--dependencies-all` is intended for SBOM-like, exhaustive reporting.
 
 ### Examples
 
@@ -76,6 +82,13 @@ third-party-license --license ./out/THIRD-PARTY-LICENSE.md
 
 # Exit with code 1 when something is missing (with --fail-on-missing)
 third-party-license --fail-on-missing
+
+# Day-to-day (dependencies only)
+third-party-license --dependencies-only
+
+# Audit / SBOM-like (scan all packages under node_modules)
+third-party-license --dependencies-all
+third-party-license --dependencies-all --license ./out/THIRD-PARTY-LICENSE.md --review ./out/THIRD-PARTY-LICENSE-REVIEW.md
 ```
 
 ### Programmatic API
@@ -88,6 +101,7 @@ const result = await collectThirdPartyLicenses({
   outFile: "./THIRD-PARTY-LICENSE.md",
   reviewFile: "./THIRD-PARTY-LICENSE-REVIEW.md",
   failOnMissing: false,
+  dependenciesOnly: true,
   // mode: "update", // keep packages missing from node_modules when updating files
 });
 
@@ -100,10 +114,10 @@ Outputs are sorted by package key. Use `mode: "update"` to merge with existing f
 ### Output overview
 
 - **THIRD-PARTY-LICENSE.md**
-  - List of packages
+  - List of packages (default: only those reachable from `dependencies`/`optionalDependencies`)
   - Source / License info
   - Full LICENSE/NOTICE/COPYRIGHT/THIRD-PARTY-NOTICES/THIRD-PARTY-LICENSES/ThirdPartyNoticeText/ThirdPartyText/COPYING texts
-  - Usage line shows whether the package is present in the current `node_modules`
+  - Usage line shows whether the package is present in the current `node_modules` (or kept from previous output with `--update`)
 - **THIRD-PARTY-LICENSE-REVIEW.md**
   - Review-oriented checklist
   - Usage-aware status (present / not found) for each package
@@ -122,7 +136,10 @@ Outputs are sorted by package key. Use `mode: "update"` to merge with existing f
 
 ### Notes
 
-- Scans all packages under `node_modules` (including nested dependencies); license files are searched only in each package root directory.
+- Default output is restricted to the dependency tree from `dependencies` and `optionalDependencies`.
+- Use `--dependencies-all` to scan all packages under `node_modules` (including nested dependencies).
+- License files are searched only in each package root directory.
+- If multiple copies of the same name@version exist, dependency-only output disambiguates them by path.
 - Recognizes LICENSE, NOTICE, COPYRIGHT, THIRD-PARTY-NOTICES, THIRD-PARTY-LICENSES, ThirdPartyNoticeText/ThirdPartyText, and COPYING files (e.g., TypeScript's `ThirdPartyNoticeText.txt`).
 - Exit code 0: success.
 - Exit code 1: missing license files when `--fail-on-missing` is set, or `node_modules` not found.

@@ -39,6 +39,10 @@ function parseArgs(argv) {
       args.mode = "update";
     } else if (a === "--fail-on-missing") {
       args.failOnMissing = true;
+    } else if (a === "--dependencies-only") {
+      args.dependenciesOnly = true;
+    } else if (a === "--dependencies-all") {
+      args.dependenciesOnly = false;
     } else if (a === "-h" || a === "--help") {
       showHelp();
       process.exit(0);
@@ -71,7 +75,7 @@ function applyOutputMode(mode, args) {
 
 function showHelp() {
   console.log(`Usage:
-  third-party-license [--node-modules <dir>] [--review [file]] [--license [file]] [--recreate|--update] [--fail-on-missing]
+  third-party-license [--node-modules <dir>] [--review [file]] [--license [file]] [--recreate|--update] [--fail-on-missing] [--dependencies-only|--dependencies-all]
 `);
 }
 
