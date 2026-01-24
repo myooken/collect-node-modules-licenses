@@ -1,3 +1,4 @@
+import fsp from "node:fs/promises";
 import path from "node:path";
 import {
   makeAnchorId,
@@ -13,13 +14,14 @@ import { buildPackageEntry } from "./package-entry.js";
 import { LICENSE_FILES_LABEL } from "./constants.js";
 // node_modules を走査してパッケージ情報を集約する
 export async function gatherPackages(opts) {
+  const nodeModulesReal = await toRealPath(opts.nodeModules);
   const allowedDirs = opts.dependenciesOnly
     ? await collectDependencyDirs(opts)
     : null;
   const packages = [];
   const seen = new Set();
   for await (const pj of walkForPackageJson(opts.nodeModules)) {
-    const pkgDir = path.dirname(pj);
+    const pkgDir = await toRealPath(path.dirname(pj));
     if (allowedDirs && !allowedDirs.has(pkgDir)) continue;
     const pkg = await readPackageJson(pj);
     if (!pkg) continue;
@@ -40,11 +42,11 @@ export async function gatherPackages(opts) {
   }
 
   // 同名同バージョンが複数ある場合はパスで区別する
-  disambiguateDuplicateKeys(packages, opts.nodeModules);
+  disambiguateDuplicateKeys(packages, nodeModulesReal);
   for (const pkg of packages) {
     pkg.anchor = makeAnchorId(pkg.key);
   }
-  ensureUniqueAnchors(packages, opts.nodeModules);
+  ensureUniqueAnchors(packages, nodeModulesReal);
   const missingFiles = [];
   const missingSource = [];
   const missingLicenseField = [];
@@ -123,5 +125,13 @@ function ensureUniqueAnchors(packages, nodeModulesRoot) {
       const label = makePackagePathLabel(pkg.dir, nodeModulesRoot);
       pkg.anchor = `${pkg.anchor}-${hashStableSuffix(label)}`;
     }
+  }
+}
+
+async function toRealPath(targetPath) {
+  try {
+    return await fsp.realpath(targetPath);
+  } catch {
+    return path.resolve(targetPath);
   }
 }
