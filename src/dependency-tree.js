@@ -4,7 +4,7 @@ import { readPackageJson, uniqSorted } from "./fs-utils.js";
 // dependencies/optionalDependencies から到達可能なパッケージのディレクトリを収集
 export async function collectDependencyDirs(opts) {
   const nodeModulesReal = await toRealPath(opts.nodeModules);
-  const projectDir = path.dirname(nodeModulesReal);
+  const projectDir = path.dirname(path.resolve(opts.nodeModules));
   const projectPackageJson = path.join(projectDir, "package.json");
   const rootPkg = await readPackageJson(projectPackageJson);
   if (!rootPkg) {
