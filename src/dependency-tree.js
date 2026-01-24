@@ -1,10 +1,13 @@
 import fsp from "node:fs/promises";
 import path from "node:path";
 import { readPackageJson, uniqSorted } from "./fs-utils.js";
+// Cache realpath resolutions to keep dependency traversal fast.
+const realpathCache = new Map();
 // dependencies/optionalDependencies から到達可能なパッケージのディレクトリを収集
 export async function collectDependencyDirs(opts) {
   const nodeModulesReal = await toRealPath(opts.nodeModules);
   const projectDir = path.dirname(path.resolve(opts.nodeModules));
+  const projectRootBoundary = projectDir;
   const projectPackageJson = path.join(projectDir, "package.json");
   const rootPkg = await readPackageJson(projectPackageJson);
   if (!rootPkg) {
@@ -22,7 +25,8 @@ export async function collectDependencyDirs(opts) {
     const depDir = await resolvePackageDir(
       projectDir,
       depName,
-      nodeModulesReal
+      nodeModulesReal,
+      projectRootBoundary
     );
     if (!depDir) {
       opts.warn(`Dependency not found in node_modules: ${depName}`);
@@ -50,7 +54,8 @@ export async function collectDependencyDirs(opts) {
       const depDir = await resolvePackageDir(
         pkgDir,
         depName,
-        nodeModulesReal
+        nodeModulesReal,
+        projectRootBoundary
       );
       if (!depDir) {
         opts.warn(
@@ -79,8 +84,14 @@ function collectDependencyNames(pkg) {
       : [];
   return uniqSorted([...deps, ...optionalDeps]);
 }
-async function resolvePackageDir(fromDir, depName, nodeModulesRoot) {
+async function resolvePackageDir(
+  fromDir,
+  depName,
+  nodeModulesRoot,
+  projectRootBoundary
+) {
   const rootParent = path.dirname(nodeModulesRoot);
+  const boundary = path.resolve(projectRootBoundary);
   let dir = fromDir;
   while (true) {
     const nmDir = path.join(dir, "node_modules");
@@ -89,6 +100,7 @@ async function resolvePackageDir(fromDir, depName, nodeModulesRoot) {
     const stat = await fsp.stat(candidatePkg).catch(() => null);
     if (stat && stat.isFile()) return toRealPath(candidateDir);
     if (dir === rootParent) break;
+    if (path.resolve(dir) === boundary) break;
     const parent = path.dirname(dir);
     if (parent === dir) break;
     dir = parent;
@@ -97,9 +109,15 @@ async function resolvePackageDir(fromDir, depName, nodeModulesRoot) {
 }
 
 async function toRealPath(targetPath) {
+  const cached = realpathCache.get(targetPath);
+  if (cached) return cached;
   try {
-    return await fsp.realpath(targetPath);
+    const resolved = await fsp.realpath(targetPath);
+    realpathCache.set(targetPath, resolved);
+    return resolved;
   } catch {
-    return path.resolve(targetPath);
+    const resolved = path.resolve(targetPath);
+    realpathCache.set(targetPath, resolved);
+    return resolved;
   }
 }

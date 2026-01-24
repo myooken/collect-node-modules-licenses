@@ -12,6 +12,8 @@ import {
 } from "./dependency-tree.js";
 import { buildPackageEntry } from "./package-entry.js";
 import { LICENSE_FILES_LABEL } from "./constants.js";
+// Cache realpath resolutions to avoid repeated fs calls during large scans.
+const realpathCache = new Map();
 // node_modules を走査してパッケージ情報を集約する
 export async function gatherPackages(opts) {
   const nodeModulesReal = await toRealPath(opts.nodeModules);
@@ -129,9 +131,15 @@ function ensureUniqueAnchors(packages, nodeModulesRoot) {
 }
 
 async function toRealPath(targetPath) {
+  const cached = realpathCache.get(targetPath);
+  if (cached) return cached;
   try {
-    return await fsp.realpath(targetPath);
+    const resolved = await fsp.realpath(targetPath);
+    realpathCache.set(targetPath, resolved);
+    return resolved;
   } catch {
-    return path.resolve(targetPath);
+    const resolved = path.resolve(targetPath);
+    realpathCache.set(targetPath, resolved);
+    return resolved;
   }
 }
