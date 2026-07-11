@@ -1,0 +1,43 @@
+name: Release
+
+# Publishes to npm when a version tag (v*) is pushed.
+#
+# Uses npm trusted publishing (OIDC): no npm token secret is needed, and
+# provenance is generated automatically. One-time setup on npmjs.com:
+# package Settings -> Trusted Publisher -> GitHub Actions with
+# repository myooken/collect-node-modules-licenses and workflow
+# release.yml. Publishing fails until that is configured.
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      # OIDC token for npm trusted publishing / provenance
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+      # Trusted publishing requires npm >= 11.5.1
+      - run: npm install -g npm@latest
+      - name: Check tag matches package.json version
+        run: |
+          pkg="v$(node -p "require('./package.json').version")"
+          if [ "$pkg" != "$GITHUB_REF_NAME" ]; then
+            echo "package.json is $pkg but tag is $GITHUB_REF_NAME" >&2
+            exit 1
+          fi
+      - run: npm test
+      - run: npm run test:types
+      - run: npm publish
