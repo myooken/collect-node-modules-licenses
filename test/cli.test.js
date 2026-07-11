@@ -315,6 +315,7 @@ test("CLI golden scenarios", async (t) => {
         // 生成ファイルの改行コードが実行 OS の os.EOL に従うことを(正規化前に)確認する。
         // ライセンス本文は元ファイルの改行をそのまま含むため、先頭の改行だけを見る
         const firstBreak = content.indexOf("\n");
+        assert.ok(firstBreak > 0, `${outFile} should contain a line break`);
         assert.equal(
           content[firstBreak - 1] === "\r",
           os.EOL === "\r\n",
