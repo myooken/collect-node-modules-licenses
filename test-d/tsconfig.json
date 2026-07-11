@@ -8,9 +8,7 @@
     "moduleResolution": "nodenext",
     "types": [],
     "skipLibCheck": false,
-    "paths": {
-      "node-module-license-output": ["../../types/core.d.ts"]
-    }
+    "allowJs": true
   },
   "include": ["consumer.ts"]
 }

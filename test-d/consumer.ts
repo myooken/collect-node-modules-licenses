@@ -1,9 +1,8 @@
-// Compile-only consumer of the public type definitions. Verifies that
-// types/core.d.ts matches how the API is meant to be used; run with
-// `npm run test:types`. The package name resolves via the `paths`
-// mapping in this directory's tsconfig.json. Kept outside test/ because
-// `node --test` on Node 22+ would pick up .ts files there and try to
-// execute this fixture.
+// Compile-only consumer of the public type definitions; run with
+// `npm run test:types`. The package name resolves through the package
+// self-reference, so this also verifies the exports "types" wiring in
+// package.json. Kept outside test/ because `node --test` on Node 22+
+// would pick up .ts files there and try to execute this fixture.
 import {
   collectThirdPartyLicenses,
   DEFAULT_OPTIONS,
@@ -47,3 +46,9 @@ await collectThirdPartyLicenses({ mode: "replace" });
 
 // @ts-expect-error the result is read-only rendered content, not a writer
 result.write;
+
+// The implementation must stay assignable to the declared API surface;
+// this catches removed exports and drifted return shapes in src/core.js
+import * as impl from "../src/core.js";
+import type * as api from "node-module-license-output";
+impl satisfies typeof api;

@@ -4,7 +4,9 @@ export const DEFAULT_OPTIONS = {
   outFile: "THIRD-PARTY-LICENSE.md",
   reviewFile: "THIRD-PARTY-LICENSE-REVIEW.md",
   failOnMissing: false,
-  mode: "recreate", // "recreate" | "update"
+  // The JSDoc cast keeps the union type instead of widening to string,
+  // so the implementation stays assignable to types/core.d.ts
+  mode: /** @type {"recreate" | "update"} */ ("recreate"),
   dependenciesOnly: true,
 };
 
