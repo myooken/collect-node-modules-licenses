@@ -4,18 +4,31 @@ on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
+
+# 同一ブランチの古い実行をキャンセルして実行時間を節約する
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   test:
     strategy:
-      fail-fast: false
+      # Node のバージョン差は ubuntu で網羅し、高コストな Windows/macOS は代表1バージョンに絞る
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ubuntu-latest]
         node: [18, 20, 22, 24]
+        include:
+          - os: windows-latest
+            node: 22
+          - os: macos-latest
+            node: 22
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node }}
+      # 依存ゼロのため npm install もキャッシュも不要。テスト実行のみ
       - run: npm test
