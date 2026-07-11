@@ -90,37 +90,33 @@ export async function runCli(argv = process.argv.slice(2)) {
   try {
     const result = await collectThirdPartyLicenses(args);
 
-    const dirsToEnsure = [];
-    if (result.options.writeMain)
-      dirsToEnsure.push(ensureParentDir(result.options.outFile));
-    if (result.options.writeReview) {
-      dirsToEnsure.push(ensureParentDir(result.options.reviewFile));
-    }
-    await Promise.all(dirsToEnsure);
-
-    const writeTasks = [];
+    // 出力対象を組み立て、mkdir→write→log の3フェーズで処理する
+    const targets = [];
     if (result.options.writeMain) {
-      writeTasks.push(
-        fsp.writeFile(result.options.outFile, result.mainContent, "utf8")
-      );
+      targets.push({
+        file: result.options.outFile,
+        content: result.mainContent,
+        label: `Generated: ${
+          result.options.outFileDisplay ?? result.options.outFile
+        }`,
+      });
     }
     if (result.options.writeReview) {
-      writeTasks.push(
-        fsp.writeFile(result.options.reviewFile, result.reviewContent, "utf8")
-      );
-    }
-    await Promise.all(writeTasks);
-
-    if (result.options.writeMain)
-      console.log(
-        `Generated: ${result.options.outFileDisplay ?? result.options.outFile}`
-      );
-    if (result.options.writeReview)
-      console.log(
-        `Review:    ${
+      targets.push({
+        file: result.options.reviewFile,
+        content: result.reviewContent,
+        label: `Review:    ${
           result.options.reviewFileDisplay ?? result.options.reviewFile
-        }`
-      );
+        }`,
+      });
+    }
+
+    await Promise.all(targets.map((t) => ensureParentDir(t.file)));
+    await Promise.all(
+      targets.map((t) => fsp.writeFile(t.file, t.content, "utf8"))
+    );
+    for (const t of targets) console.log(t.label);
+
     console.log(`Packages:  ${result.stats.packages}`);
     console.log(
       `Missing ${LICENSE_FILES_LABEL}: ${result.stats.missingFiles.length}`
