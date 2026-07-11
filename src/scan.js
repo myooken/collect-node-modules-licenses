@@ -2,6 +2,7 @@ import path from "node:path";
 import {
   createRealPathResolver,
   makeAnchorId,
+  mdSafeLine,
   readPackageJson,
   uniqSorted,
   walkForPackageJson,
@@ -84,7 +85,9 @@ function disambiguateDuplicateKeys(packages, nodeModulesRoot) {
     if (list.length < 2) continue;
     for (const pkg of list) {
       const label = makePackagePathLabel(pkg.dir, nodeModulesRoot);
-      const key = `${pkg.baseKey} (${label})`;
+      // Directory names may contain line breaks on some filesystems;
+      // keys must stay single-line markdown
+      const key = mdSafeLine(`${pkg.baseKey} (${label})`);
       pkg.key = key;
     }
   }

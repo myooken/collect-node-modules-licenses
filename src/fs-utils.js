@@ -115,6 +115,12 @@ export function mdSafeText(s) {
   return String(s).replace(/```/g, "``\u200b`");
 }
 
+// Collapse line breaks (LF/CRLF/lone CR) in single-line fields so an
+// embedded newline cannot start a new markdown line (e.g. a fake ## heading)
+export function mdSafeLine(s) {
+  return String(s).replace(/\s*[\r\n]\s*/g, " ");
+}
+
 export function uniqSorted(arr) {
   return [...new Set(arr)].sort();
 }
