@@ -5,6 +5,7 @@ import {
   readPackageJson,
   uniqSorted,
 } from "./fs-utils.js";
+import { getPackageIdentity } from "./package-entry.js";
 // Cache realpath resolutions to keep dependency traversal fast.
 const toRealPath = createRealPathResolver();
 // dependencies/optionalDependencies から到達可能なパッケージのディレクトリを収集
@@ -44,15 +45,8 @@ export async function collectDependencyDirs(opts) {
     visitedDirs.add(pkgDir);
     const pkg = await readPackageJson(path.join(pkgDir, "package.json"));
     if (!pkg) continue;
-    const name =
-      typeof pkg.name === "string" && pkg.name.trim().length > 0
-        ? pkg.name.trim()
-        : "";
-    const version =
-      typeof pkg.version === "string" && pkg.version.trim().length > 0
-        ? pkg.version.trim()
-        : "";
-    if (!name || !version) continue;
+    const ident = getPackageIdentity(pkg);
+    if (!ident) continue;
     allowed.add(pkgDir);
     for (const depName of collectDependencyNames(pkg)) {
       const depDir = await resolvePackageDir(
@@ -63,7 +57,7 @@ export async function collectDependencyDirs(opts) {
       );
       if (!depDir) {
         opts.warn(
-          `Dependency not found in node_modules: ${depName} (required by ${name}@${version})`
+          `Dependency not found in node_modules: ${depName} (required by ${ident.name}@${ident.version})`
         );
         continue;
       }

@@ -7,6 +7,20 @@ import { getRepositoryUrl } from "./url.js";
 import { LICENSE_FILES_LABEL } from "./constants.js";
 import { formatLicense } from "./license-utils.js";
 
+// package.json から name/version を取り出す（どちらか欠けていれば null）
+export function getPackageIdentity(pkg) {
+  const name =
+    typeof pkg.name === "string" && pkg.name.trim().length > 0
+      ? pkg.name.trim()
+      : "";
+  const version =
+    typeof pkg.version === "string" && pkg.version.trim().length > 0
+      ? pkg.version.trim()
+      : "";
+  if (!name || !version) return null;
+  return { name, version };
+}
+
 // ライセンス情報と警告フラグをまとめてエントリ化する
 export async function buildPackageEntry({
   pkg,

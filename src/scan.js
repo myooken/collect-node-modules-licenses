@@ -10,7 +10,7 @@ import {
   collectDependencyDirs,
   makePackagePathLabel,
 } from "./dependency-tree.js";
-import { buildPackageEntry } from "./package-entry.js";
+import { buildPackageEntry, getPackageIdentity } from "./package-entry.js";
 import { LICENSE_FILES_LABEL } from "./constants.js";
 // Cache realpath resolutions to avoid repeated fs calls during large scans.
 const toRealPath = createRealPathResolver();
@@ -74,19 +74,6 @@ export async function gatherPackages(opts) {
     seenCount: seen.size,
   };
 }
-function getPackageIdentity(pkg) {
-  const name =
-    typeof pkg.name === "string" && pkg.name.trim().length > 0
-      ? pkg.name.trim()
-      : "";
-  const version =
-    typeof pkg.version === "string" && pkg.version.trim().length > 0
-      ? pkg.version.trim()
-      : "";
-  if (!name || !version) return null;
-  return { name, version };
-}
-
 function disambiguateDuplicateKeys(packages, nodeModulesRoot) {
   const groups = new Map();
   for (const pkg of packages) {
