@@ -1,6 +1,6 @@
 import os from "node:os";
 import path from "node:path";
-import { mdSafeText, uniqSorted } from "./fs-utils.js";
+import { mdSafeLine, mdSafeText, uniqSorted } from "./fs-utils.js";
 import { LICENSE_FILES_LABEL } from "./constants.js";
 
 // メインのTHIRD-PARTY-LICENSE.mdを描画する
@@ -16,8 +16,8 @@ export function renderMain(packages, opts) {
   for (const pkg of packages) {
     push(`<a id="${pkg.anchor}"></a>`);
     push(`## ${pkg.key}`);
-    push(`- Source: ${pkg.source ?? "(missing)"}`);
-    push(`- License: ${pkg.license ?? "(missing)"}`);
+    push(`- Source: ${metaLine(pkg.source)}`);
+    push(`- License: ${metaLine(pkg.license)}`);
     push(`- Usage: ${describeUsage(pkg.usage)}`);
 
     const fileNames = pkg.fileNames ?? [];
@@ -29,11 +29,11 @@ export function renderMain(packages, opts) {
       continue;
     }
 
-    for (const n of fileNames) push(`- ${n}`);
+    for (const n of fileNames) push(`- ${mdSafeLine(n)}`);
     push("");
 
     for (const lic of pkg.licenseTexts ?? []) {
-      push(`### ${lic.name}`);
+      push(`### ${mdSafeLine(lic.name)}`);
       push("```text");
       push(mdSafeText(lic.text).replace(/\s+$/, ""));
       push("```");
@@ -65,15 +65,15 @@ export function renderReview(
   for (const it of [...packages].sort((a, b) => a.key.localeCompare(b.key))) {
     push(`## ${it.key}`);
     push(`- Main: ${mainPath}#${it.anchor}`);
-    push(`- Source: ${it.source ?? "(missing)"}`);
-    push(`- License: ${it.license ?? "(missing)"}`);
+    push(`- Source: ${metaLine(it.source)}`);
+    push(`- License: ${metaLine(it.license)}`);
 
     push("- Files:");
     const fileNames = it.fileNames ?? [];
     if (fileNames.length === 0) {
       push("  - (none)");
     } else {
-      for (const f of fileNames) push(`  - ${f}`);
+      for (const f of fileNames) push(`  - ${mdSafeLine(f)}`);
     }
 
     const statusParts = [describeUsage(it.usage), ...(it.flags ?? [])].filter(
@@ -118,6 +118,12 @@ function makeMainLinkPath(opts) {
   const rel = path.relative(baseDir, opts.outFile);
   const normalized = rel.replace(/\\/g, "/");
   return normalized || path.basename(opts.outFile);
+}
+
+// Source/License values come straight from package.json; collapse line
+// breaks so a crafted value cannot inject a fake package heading
+function metaLine(value) {
+  return value == null ? "(missing)" : mdSafeLine(value);
 }
 
 function describeUsage(usage) {
