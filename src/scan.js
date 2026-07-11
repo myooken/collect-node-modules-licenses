@@ -1,6 +1,6 @@
-import fsp from "node:fs/promises";
 import path from "node:path";
 import {
+  createRealPathResolver,
   makeAnchorId,
   readPackageJson,
   uniqSorted,
@@ -13,7 +13,7 @@ import {
 import { buildPackageEntry } from "./package-entry.js";
 import { LICENSE_FILES_LABEL } from "./constants.js";
 // Cache realpath resolutions to avoid repeated fs calls during large scans.
-const realpathCache = new Map();
+const toRealPath = createRealPathResolver();
 // node_modules を走査してパッケージ情報を集約する
 export async function gatherPackages(opts) {
   const nodeModulesReal = await toRealPath(opts.nodeModules);
@@ -127,19 +127,5 @@ function ensureUniqueAnchors(packages, nodeModulesRoot) {
       const label = makePackagePathLabel(pkg.dir, nodeModulesRoot);
       pkg.anchor = `${pkg.anchor}-${hashStableSuffix(label)}`;
     }
-  }
-}
-
-async function toRealPath(targetPath) {
-  const cached = realpathCache.get(targetPath);
-  if (cached) return cached;
-  try {
-    const resolved = await fsp.realpath(targetPath);
-    realpathCache.set(targetPath, resolved);
-    return resolved;
-  } catch {
-    const resolved = path.resolve(targetPath);
-    realpathCache.set(targetPath, resolved);
-    return resolved;
   }
 }
