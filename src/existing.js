@@ -30,29 +30,46 @@ async function readFileSafe(filePath) {
   }
 }
 
+// Renderers always emit package keys as "name@version" (or
+// "name@version (path)"), so a real package key contains "@" beyond a
+// possible leading scope "@". Headings that fail this test — the review
+// file's "Missing summary" section and ghost blocks injected by a past
+// bug — are not packages.
+function looksLikePackageKey(key) {
+  return key.indexOf("@", 1) !== -1;
+}
+
+// Split content into package blocks at ## headings, except:
+// - ## lines inside ``` fences are not boundaries (embedded license texts;
+//   fences within the texts are escaped by mdSafeText, so toggling is safe)
+// - headings that don't look like package keys are dropped with their body
 function splitPackageBlocks(content) {
   const blocks = [];
-  const headingRe = /^##\s+(.+)$/gm;
-  let match;
+  const pushBlock = (current, end) => {
+    if (!current) return;
+    if (!looksLikePackageKey(current.key)) return;
+    blocks.push({ key: current.key, body: content.slice(current.start, end) });
+  };
+
   let current = null;
+  let inFence = false;
+  let offset = 0;
 
-  while ((match = headingRe.exec(content))) {
-    if (current) {
-      blocks.push({
-        key: current.key,
-        body: content.slice(current.start, match.index),
-      });
+  for (const rawLine of content.split(/(?<=\n)/)) {
+    const line = rawLine.replace(/\r?\n$/, "");
+    if (line.startsWith("```")) {
+      inFence = !inFence;
+    } else if (!inFence) {
+      const m = /^##\s+(.+)$/.exec(line);
+      if (m) {
+        pushBlock(current, offset);
+        current = { key: m[1].trim(), start: offset };
+      }
     }
-    current = { key: match[1].trim(), start: match.index };
+    offset += rawLine.length;
   }
 
-  if (current) {
-    blocks.push({
-      key: current.key,
-      body: content.slice(current.start),
-    });
-  }
-
+  pushBlock(current, content.length);
   return blocks;
 }
 
