@@ -239,6 +239,16 @@ const scenarios = [
     seed: true,
     files: { [MAIN]: "license.md", [REVIEW]: "review.md" },
   },
+  {
+    // CRLF の既存ファイルでも --update が同じ結果になること(Windows 生成物の取り込み)
+    name: "update-crlf",
+    args: ["--update"],
+    exit: 0,
+    seed: true,
+    seedEol: "\r\n",
+    snapshots: "update",
+    files: { [MAIN]: "license.md", [REVIEW]: "review.md" },
+  },
 ];
 
 // ---- スナップショット比較 ---------------------------------------------
@@ -284,8 +294,9 @@ test("CLI golden scenarios", async (t) => {
       const outDir = path.join(root, "out", scenario.name);
       fs.mkdirSync(outDir, { recursive: true });
       if (scenario.seed) {
-        fs.writeFileSync(path.join(outDir, MAIN), SEED_MAIN);
-        fs.writeFileSync(path.join(outDir, REVIEW), SEED_REVIEW);
+        const eol = scenario.seedEol ?? "\n";
+        fs.writeFileSync(path.join(outDir, MAIN), SEED_MAIN.replace(/\n/g, eol));
+        fs.writeFileSync(path.join(outDir, REVIEW), SEED_REVIEW.replace(/\n/g, eol));
       }
 
       const res = spawnSync(
@@ -294,13 +305,22 @@ test("CLI golden scenarios", async (t) => {
         { cwd: outDir, encoding: "utf8" }
       );
 
+      const snapDir = scenario.snapshots ?? scenario.name;
       assert.equal(res.status, scenario.exit, `exit code (stderr: ${res.stderr})`);
-      assertSnapshot(normalize(res.stdout), `${scenario.name}/stdout.txt`);
-      assertSnapshot(normalize(res.stderr), `${scenario.name}/stderr.txt`);
+      assertSnapshot(normalize(res.stdout), `${snapDir}/stdout.txt`);
+      assertSnapshot(normalize(res.stderr), `${snapDir}/stderr.txt`);
 
       for (const [outFile, snapName] of Object.entries(scenario.files)) {
         const content = fs.readFileSync(path.join(outDir, outFile), "utf8");
-        assertSnapshot(normalize(content), `${scenario.name}/${snapName}`);
+        // 生成ファイルの改行コードが実行 OS の os.EOL に従うことを(正規化前に)確認する。
+        // ライセンス本文は元ファイルの改行をそのまま含むため、先頭の改行だけを見る
+        const firstBreak = content.indexOf("\n");
+        assert.equal(
+          content[firstBreak - 1] === "\r",
+          os.EOL === "\r\n",
+          `${outFile} should use os.EOL line endings`
+        );
+        assertSnapshot(normalize(content), `${snapDir}/${snapName}`);
       }
       for (const outFile of scenario.absent ?? []) {
         assert.ok(!fs.existsSync(path.join(outDir, outFile)), `${outFile} should not exist`);
