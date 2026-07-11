@@ -2,7 +2,7 @@
  * Hand-written type definitions for the programmatic API (src/core.js).
  * The implementation stays plain JavaScript; keep this file in sync with
  * src/core.js when the API changes. Consistency is checked by
- * `npm run test:types` (test/types/consumer.ts).
+ * `npm run test:types` (test-d/consumer.ts).
  */
 
 /** Output mode. `"recreate"` regenerates everything from the current scan;

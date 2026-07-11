@@ -48,7 +48,7 @@
   ],
   "scripts": {
     "test": "node --test",
-    "test:types": "npx -y -p typescript@5 tsc -p test/types"
+    "test:types": "npx -y -p typescript@5 tsc -p test-d"
   },
   "engines": {
     "node": ">=18"

@@ -1,7 +1,9 @@
 // Compile-only consumer of the public type definitions. Verifies that
 // types/core.d.ts matches how the API is meant to be used; run with
 // `npm run test:types`. The package name resolves via the `paths`
-// mapping in this directory's tsconfig.json.
+// mapping in this directory's tsconfig.json. Kept outside test/ because
+// `node --test` on Node 22+ would pick up .ts files there and try to
+// execute this fixture.
 import {
   collectThirdPartyLicenses,
   DEFAULT_OPTIONS,
