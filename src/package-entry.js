@@ -66,17 +66,14 @@ export async function buildPackageEntry({
       : [];
 
   return {
-    entry: {
-      key,
-      baseKey: baseKey ?? key,
-      source,
-      license,
-      fileNames,
-      flags,
-      licenseTexts,
-      dir: pkgDir,
-      missing,
-    },
+    key,
+    baseKey: baseKey ?? key,
+    source,
+    license,
+    fileNames,
+    flags,
+    licenseTexts,
+    dir: pkgDir,
     missing,
   };
 }

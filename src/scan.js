@@ -30,14 +30,12 @@ export async function gatherPackages(opts) {
     const ident = getPackageIdentity(pkg);
     if (!ident) continue;
     const baseKey = `${ident.name}@${ident.version}`;
-    const seenKey = pkgDir;
-    if (seen.has(seenKey)) continue;
-    seen.add(seenKey);
-    const key = baseKey;
-    const { entry } = await buildPackageEntry({
+    if (seen.has(pkgDir)) continue;
+    seen.add(pkgDir);
+    const entry = await buildPackageEntry({
       pkg,
       pkgDir,
-      key,
+      key: baseKey,
       baseKey,
     });
     packages.push(entry);
