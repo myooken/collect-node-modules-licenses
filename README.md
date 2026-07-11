@@ -1,5 +1,7 @@
 # Third-Party License Output for node_modules
 
+[![CI](https://github.com/myooken/collect-node-modules-licenses/actions/workflows/ci.yml/badge.svg)](https://github.com/myooken/collect-node-modules-licenses/actions/workflows/ci.yml)
+
 Package name: node-module-license-output
 
 https://www.npmjs.com/package/node-module-license-output
@@ -19,6 +21,13 @@ It generates two files: `THIRD-PARTY-LICENSE.md` (main content) and `THIRD-PARTY
 - Intended for npm/pnpm usage (node_modules layout)
 
 CLI command: `third-party-license`
+
+### Supported environments
+
+- **OS**: Linux, macOS, and Windows — the test suite runs on all three in CI
+- **Node.js**: 18 / 20 / 22 / 24 (tested in CI)
+- **Package managers**: npm and pnpm `node_modules` layouts; symlinks and Windows junctions (e.g. pnpm's `.pnpm` store) are resolved via realpath
+- **Line endings**: output files use the platform's native line endings; `--update` reads existing files written with either LF or CRLF
 
 ### Usage
 
