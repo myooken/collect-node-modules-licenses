@@ -1,5 +1,7 @@
 # Third-Party License Output for node_modules
 
+[![CI](https://github.com/myooken/collect-node-modules-licenses/actions/workflows/ci.yml/badge.svg)](https://github.com/myooken/collect-node-modules-licenses/actions/workflows/ci.yml)
+
 Package name: node-module-license-output
 
 https://www.npmjs.com/package/node-module-license-output
@@ -19,6 +21,13 @@ It generates two files: `THIRD-PARTY-LICENSE.md` (main content) and `THIRD-PARTY
 - Intended for npm/pnpm usage (node_modules layout)
 
 CLI command: `third-party-license`
+
+### Supported environments
+
+- **OS**: Linux, macOS, and Windows — the test suite runs on all three in CI
+- **Node.js**: 18 / 20 / 22 / 24 (tested in CI)
+- **Package managers**: conventional npm layouts and pnpm's default in-tree `.pnpm` layout; pnpm package links/junctions are matched via realpath
+- **Line endings**: generated Markdown framing uses the platform's native line endings, while embedded license texts retain their source line endings (so mixed endings are possible); `--update` accepts both LF and CRLF inputs
 
 ### Usage
 
@@ -147,4 +156,4 @@ Outputs are sorted by package key. Use `mode: "update"` to merge with existing f
 - Exit code 1: missing license files when `--fail-on-missing` is set, or `node_modules` not found.
 - Throws an error if `node_modules` does not exist.
 - Missing `license` or `repository` fields are flagged in the review file.
-- Paths printed in outputs/logs are shown relative to the current working directory.
+- Paths printed in generated files and the summary log are shown relative to the current working directory; warnings about missing license files print the package's absolute (real) path.

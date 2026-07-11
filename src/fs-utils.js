@@ -94,6 +94,23 @@ export async function readTextFileSmart(filePath) {
   return decodeSmart(buf);
 }
 
+// realpath の解決結果をキャッシュするリゾルバを生成する（モジュールごとに独立したキャッシュを持たせる）
+export function createRealPathResolver() {
+  const cache = new Map();
+  return async function toRealPath(targetPath) {
+    const cached = cache.get(targetPath);
+    if (cached) return cached;
+    let resolved;
+    try {
+      resolved = await fsp.realpath(targetPath);
+    } catch {
+      resolved = path.resolve(targetPath);
+    }
+    cache.set(targetPath, resolved);
+    return resolved;
+  };
+}
+
 export function mdSafeText(s) {
   return String(s).replace(/```/g, "``\u200b`");
 }

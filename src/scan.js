@@ -1,6 +1,6 @@
-import fsp from "node:fs/promises";
 import path from "node:path";
 import {
+  createRealPathResolver,
   makeAnchorId,
   readPackageJson,
   uniqSorted,
@@ -10,10 +10,10 @@ import {
   collectDependencyDirs,
   makePackagePathLabel,
 } from "./dependency-tree.js";
-import { buildPackageEntry } from "./package-entry.js";
+import { buildPackageEntry, getPackageIdentity } from "./package-entry.js";
 import { LICENSE_FILES_LABEL } from "./constants.js";
 // Cache realpath resolutions to avoid repeated fs calls during large scans.
-const realpathCache = new Map();
+const toRealPath = createRealPathResolver();
 // node_modules を走査してパッケージ情報を集約する
 export async function gatherPackages(opts) {
   const nodeModulesReal = await toRealPath(opts.nodeModules);
@@ -30,14 +30,12 @@ export async function gatherPackages(opts) {
     const ident = getPackageIdentity(pkg);
     if (!ident) continue;
     const baseKey = `${ident.name}@${ident.version}`;
-    const seenKey = pkgDir;
-    if (seen.has(seenKey)) continue;
-    seen.add(seenKey);
-    const key = baseKey;
-    const { entry } = await buildPackageEntry({
+    if (seen.has(pkgDir)) continue;
+    seen.add(pkgDir);
+    const entry = await buildPackageEntry({
       pkg,
       pkgDir,
-      key,
+      key: baseKey,
       baseKey,
     });
     packages.push(entry);
@@ -74,19 +72,6 @@ export async function gatherPackages(opts) {
     seenCount: seen.size,
   };
 }
-function getPackageIdentity(pkg) {
-  const name =
-    typeof pkg.name === "string" && pkg.name.trim().length > 0
-      ? pkg.name.trim()
-      : "";
-  const version =
-    typeof pkg.version === "string" && pkg.version.trim().length > 0
-      ? pkg.version.trim()
-      : "";
-  if (!name || !version) return null;
-  return { name, version };
-}
-
 function disambiguateDuplicateKeys(packages, nodeModulesRoot) {
   const groups = new Map();
   for (const pkg of packages) {
@@ -127,19 +112,5 @@ function ensureUniqueAnchors(packages, nodeModulesRoot) {
       const label = makePackagePathLabel(pkg.dir, nodeModulesRoot);
       pkg.anchor = `${pkg.anchor}-${hashStableSuffix(label)}`;
     }
-  }
-}
-
-async function toRealPath(targetPath) {
-  const cached = realpathCache.get(targetPath);
-  if (cached) return cached;
-  try {
-    const resolved = await fsp.realpath(targetPath);
-    realpathCache.set(targetPath, resolved);
-    return resolved;
-  } catch {
-    const resolved = path.resolve(targetPath);
-    realpathCache.set(targetPath, resolved);
-    return resolved;
   }
 }

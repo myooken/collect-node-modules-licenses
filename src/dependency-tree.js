@@ -1,8 +1,13 @@
 import fsp from "node:fs/promises";
 import path from "node:path";
-import { readPackageJson, uniqSorted } from "./fs-utils.js";
+import {
+  createRealPathResolver,
+  readPackageJson,
+  uniqSorted,
+} from "./fs-utils.js";
+import { getPackageIdentity } from "./package-entry.js";
 // Cache realpath resolutions to keep dependency traversal fast.
-const realpathCache = new Map();
+const toRealPath = createRealPathResolver();
 // dependencies/optionalDependencies から到達可能なパッケージのディレクトリを収集
 export async function collectDependencyDirs(opts) {
   const nodeModulesReal = await toRealPath(opts.nodeModules);
@@ -40,15 +45,8 @@ export async function collectDependencyDirs(opts) {
     visitedDirs.add(pkgDir);
     const pkg = await readPackageJson(path.join(pkgDir, "package.json"));
     if (!pkg) continue;
-    const name =
-      typeof pkg.name === "string" && pkg.name.trim().length > 0
-        ? pkg.name.trim()
-        : "";
-    const version =
-      typeof pkg.version === "string" && pkg.version.trim().length > 0
-        ? pkg.version.trim()
-        : "";
-    if (!name || !version) continue;
+    const ident = getPackageIdentity(pkg);
+    if (!ident) continue;
     allowed.add(pkgDir);
     for (const depName of collectDependencyNames(pkg)) {
       const depDir = await resolvePackageDir(
@@ -59,7 +57,7 @@ export async function collectDependencyDirs(opts) {
       );
       if (!depDir) {
         opts.warn(
-          `Dependency not found in node_modules: ${depName} (required by ${name}@${version})`
+          `Dependency not found in node_modules: ${depName} (required by ${ident.name}@${ident.version})`
         );
         continue;
       }
@@ -106,18 +104,4 @@ async function resolvePackageDir(
     dir = parent;
   }
   return null;
-}
-
-async function toRealPath(targetPath) {
-  const cached = realpathCache.get(targetPath);
-  if (cached) return cached;
-  try {
-    const resolved = await fsp.realpath(targetPath);
-    realpathCache.set(targetPath, resolved);
-    return resolved;
-  } catch {
-    const resolved = path.resolve(targetPath);
-    realpathCache.set(targetPath, resolved);
-    return resolved;
-  }
 }

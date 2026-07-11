@@ -2,24 +2,22 @@ import fsp from "node:fs/promises";
 import { makeAnchorId, uniqSorted } from "./fs-utils.js";
 import { LICENSE_FILES_LABEL } from "./constants.js";
 
-export async function parseExistingMainFile(filePath) {
-  const content = await readFileSafe(filePath);
-  if (!content) return new Map();
-
-  const map = new Map();
-  for (const { key, body } of splitPackageBlocks(content)) {
-    map.set(key, parseMainBlock(key, body));
-  }
-  return map;
+export function parseExistingMainFile(filePath) {
+  return parseExistingFile(filePath, parseMainBlock);
 }
 
-export async function parseExistingReviewFile(filePath) {
+export function parseExistingReviewFile(filePath) {
+  return parseExistingFile(filePath, parseReviewBlock);
+}
+
+// ファイルを読み、## 単位のブロックを parseBlock で Map化する
+async function parseExistingFile(filePath, parseBlock) {
   const content = await readFileSafe(filePath);
   if (!content) return new Map();
 
   const map = new Map();
   for (const { key, body } of splitPackageBlocks(content)) {
-    map.set(key, parseReviewBlock(key, body));
+    map.set(key, parseBlock(key, body));
   }
   return map;
 }

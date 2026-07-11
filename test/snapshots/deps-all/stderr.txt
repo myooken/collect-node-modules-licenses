@@ -1,0 +1,3 @@
+warning: Missing LICENSE/NOTICE/COPYRIGHT/THIRD-PARTY-NOTICES/THIRD-PARTY-LICENSES/ThirdPartyNoticeText/ThirdPartyText/COPYING in <ROOT>/fixture/node_modules/opt-pkg (opt-pkg@1.0.0)
+warning: Unknown source: opt-pkg@1.0.0
+warning: Missing license in package.json: opt-pkg@1.0.0
