@@ -22,18 +22,24 @@
     "cli"
   ],
   "exports": {
-    ".": "./src/core.js"
+    ".": {
+      "types": "./types/core.d.ts",
+      "default": "./src/core.js"
+    }
   },
+  "types": "./types/core.d.ts",
   "bin": {
     "third-party-license": "./src/cli.js"
   },
   "files": [
     "src",
+    "types",
     "README.md",
     "LICENSE"
   ],
   "scripts": {
-    "test": "node --test"
+    "test": "node --test",
+    "test:types": "npx -y -p typescript@5 tsc -p test/types"
   },
   "engines": {
     "node": ">=18"

@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "noEmit": true,
+    "target": "es2022",
+    "lib": ["es2022"],
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "types": [],
+    "skipLibCheck": false,
+    "paths": {
+      "node-module-license-output": ["../../types/core.d.ts"]
+    }
+  },
+  "include": ["consumer.ts"]
+}

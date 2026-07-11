@@ -1,0 +1,47 @@
+// Compile-only consumer of the public type definitions. Verifies that
+// types/core.d.ts matches how the API is meant to be used; run with
+// `npm run test:types`. The package name resolves via the `paths`
+// mapping in this directory's tsconfig.json.
+import {
+  collectThirdPartyLicenses,
+  DEFAULT_OPTIONS,
+  type CollectOptions,
+  type CollectResult,
+  type OutputMode,
+} from "node-module-license-output";
+
+const options: CollectOptions = {
+  nodeModules: "node_modules",
+  outFile: "THIRD-PARTY-LICENSE.md",
+  reviewFile: "THIRD-PARTY-LICENSE-REVIEW.md",
+  failOnMissing: true,
+  dependenciesOnly: false,
+  writeMain: true,
+  writeReview: false,
+  mode: "update",
+  onWarn: (message) => {
+    void message.length;
+  },
+};
+
+const result: CollectResult = await collectThirdPartyLicenses(options);
+await collectThirdPartyLicenses();
+
+void result.mainContent.trimEnd();
+void result.reviewContent.trimEnd();
+void result.options.nodeModulesDisplay.length;
+result.options.warn("manual warning");
+void result.stats.packages.toFixed(0);
+void result.stats.missingFiles.map((key) => key.length);
+
+DEFAULT_OPTIONS.mode satisfies OutputMode;
+DEFAULT_OPTIONS.nodeModules satisfies string;
+
+// @ts-expect-error unknown options must be rejected
+await collectThirdPartyLicenses({ unknownOption: true });
+
+// @ts-expect-error mode is a closed union
+await collectThirdPartyLicenses({ mode: "replace" });
+
+// @ts-expect-error the result is read-only rendered content, not a writer
+result.write;
