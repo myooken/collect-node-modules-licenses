@@ -253,13 +253,22 @@ const scenarios = [
 
 // ---- スナップショット比較 ---------------------------------------------
 
-// EOL・一時ディレクトリの絶対パス・パス区切りを正規化して OS 非依存にする
+// EOL・一時ディレクトリの絶対パス・パス区切りを正規化して OS 非依存にする。
+// Windows は 8.3 短縮名や大文字小文字の揺れがあるため、スラッシュ変換後に
+// 大文字小文字非依存で置換する
 function makeNormalizer(root) {
-  const roots = [...new Set([fs.realpathSync(root), root])];
+  const variants = new Set([root, fs.realpathSync(root)]);
+  try {
+    variants.add(fs.realpathSync.native(root));
+  } catch {}
+  const flags = process.platform === "win32" ? "gi" : "g";
   return (text) => {
-    let s = text.replace(/\r\n/g, "\n");
-    for (const r of roots) s = s.split(r).join("<ROOT>");
-    return s.replace(/\\/g, "/");
+    let s = text.replace(/\r\n/g, "\n").replace(/\\/g, "/");
+    for (const v of variants) {
+      const slashed = v.replace(/\\/g, "/").replace(/[.*+?^${}()|[\]]/g, "\\$&");
+      s = s.replace(new RegExp(slashed, flags), "<ROOT>");
+    }
+    return s;
   };
 }
 
@@ -280,9 +289,10 @@ function assertSnapshot(actual, snapshotName) {
 // ---- 本体 --------------------------------------------------------------
 
 test("CLI golden scenarios", async (t) => {
-  // realpath して使う: macOS では tmpdir が symlink (/var → /private/var) のため、
-  // そのままだと CLI の cwd と食い違い、相対表示パスが OS 依存になる
-  const root = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), "cnml-test-")));
+  // realpath して使う: macOS では tmpdir が symlink (/var → /private/var)、
+  // Windows では 8.3 短縮名のことがあり、そのままだと CLI 側の解決結果と食い違う。
+  // native は短縮名も長い形式へ展開する
+  const root = fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(), "cnml-test-")));
   t.after(() => fs.rmSync(root, { recursive: true, force: true }));
 
   const nm = buildFixture(root);
