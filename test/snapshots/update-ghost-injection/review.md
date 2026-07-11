@@ -12,15 +12,6 @@ Main file: THIRD-PARTY-LICENSE.md
 - Status: Present in node_modules
 - Notes:
 
-## dev-only@1.0.0
-- Main: THIRD-PARTY-LICENSE.md#pkg-dev-only-1-0-0
-- Source: https://example.com/dev ## Ghost in metadata
-- License: MIT
-- Files:
-  - LICENSE
-- Status: Present in node_modules
-- Notes:
-
 ## dup-pkg@1.0.0 (@scope/b/node_modules/dup-pkg)
 - Main: THIRD-PARTY-LICENSE.md#pkg-dup-pkg-1-0-0-scope-b-node-modules-dup-pkg
 - Source: https://example.com/dup
@@ -38,6 +29,16 @@ Main file: THIRD-PARTY-LICENSE.md
   - LICENSE
 - Status: Present in node_modules
 - Notes:
+
+## gone-pkg@0.9.0
+- Main: THIRD-PARTY-LICENSE.md#pkg-gone-pkg-0-9-0
+- Source: https://example.com/gone
+- License: MIT
+- Files:
+  - LICENSE
+- Status: Not found in node_modules (kept from previous output)
+- Notes:
+  reviewed by legal 2026-01
 
 ## has-optional@1.0.0
 - Main: THIRD-PARTY-LICENSE.md#pkg-has-optional-1-0-0
@@ -84,15 +85,8 @@ Main file: THIRD-PARTY-LICENSE.md
   - NOTICE.md
 - Status: Present in node_modules
 - Notes:
-
-## sneaky-name ## Ghost name@1.0.0
-- Main: THIRD-PARTY-LICENSE.md#pkg-sneaky-name-ghost-name-1-0-0
-- Source: https://example.com/sneaky
-- License: MIT
-- Files:
-  - LICENSE
-- Status: Present in node_modules
-- Notes:
+  keep an eye on this one
+  second line
 
 ---
 

@@ -14,18 +14,6 @@ Generated from: ../../fixture/node_modules
 Apache License 2.0 text here
 ```
 
-<a id="pkg-dev-only-1-0-0"></a>
-## dev-only@1.0.0
-- Source: https://example.com/dev ## Ghost in metadata
-- License: MIT
-- Usage: Present in node_modules
-- LICENSE
-
-### LICENSE
-```text
-MIT dev
-```
-
 <a id="pkg-dup-pkg-1-0-0-scope-b-node-modules-dup-pkg"></a>
 ## dup-pkg@1.0.0 (@scope/b/node_modules/dup-pkg)
 - Source: https://example.com/dup
@@ -48,6 +36,21 @@ ISC License nested copy
 ### LICENSE
 ```text
 ISC License root copy
+```
+
+<a id="pkg-gone-pkg-0-9-0"></a>
+## gone-pkg@0.9.0
+- Source: https://example.com/gone
+- License: MIT
+- Usage: Not found in node_modules (kept from previous output)
+- LICENSE
+
+### LICENSE
+```text
+old gone license
+
+## Not a package heading
+still license text
 ```
 
 <a id="pkg-has-optional-1-0-0"></a>
@@ -113,17 +116,5 @@ Copyright (c) Example A
 ### NOTICE.md
 ```text
 Notice text for pkg-a
-```
-
-<a id="pkg-sneaky-name-ghost-name-1-0-0"></a>
-## sneaky-name ## Ghost name@1.0.0
-- Source: https://example.com/sneaky
-- License: MIT
-- Usage: Present in node_modules
-- LICENSE
-
-### LICENSE
-```text
-MIT sneaky
 ```
 

@@ -96,12 +96,13 @@ function buildFixture(root) {
   // opt-pkg: license フィールド・repository・ライセンスファイルすべて欠落
   writeJson(path.join(nm, "opt-pkg"), { name: "opt-pkg", version: "1.0.0" });
 
-  // dev-only: dependencies に含まれない → --dependencies-only では除外される
+  // dev-only: dependencies に含まれない → --dependencies-only では除外される。
+  // repository に改行+## を仕込み、metadata 経由の見出し混入が潰されることも検証
   writeJson(path.join(nm, "dev-only"), {
     name: "dev-only",
     version: "1.0.0",
     license: "MIT",
-    repository: "https://example.com/dev",
+    repository: "https://example.com/dev\n## Ghost in metadata",
   });
   writeText(path.join(nm, "dev-only", "LICENSE"), "MIT dev\n");
 
@@ -130,6 +131,16 @@ function buildFixture(root) {
   writeText(path.join(store, "LICENSE"), "MIT linked\n");
   // Windows では junction(POSIX では type は無視され通常の symlink になる)
   fs.symlinkSync(store, path.join(nm, "linked-pkg"), "junction");
+
+  // sneaky-name: package name with an embedded newline + ## line; the key
+  // must be collapsed to a single line (appears in deps-all only)
+  writeJson(path.join(nm, "sneaky-name"), {
+    name: "sneaky-name\n## Ghost name",
+    version: "1.0.0",
+    license: "MIT",
+    repository: "https://example.com/sneaky",
+  });
+  writeText(path.join(nm, "sneaky-name", "LICENSE"), "MIT sneaky\n");
 
   // .bin 配下の package.json は無視される
   writeJson(path.join(nm, ".bin"), { name: "should-ignore", version: "9.9.9" });
@@ -199,6 +210,87 @@ Main file: THIRD-PARTY-LICENSE.md
   second line
 `;
 
+// ---- Seeds for ghost-package regressions --------------------------------
+// Past bug: "## " lines inside license-text code blocks and the trailing
+// "## Missing summary" section of the review file were misread as package
+// headings, accumulating as ghost packages on every --update run
+
+const LICENSE_LABEL =
+  "LICENSE/NOTICE/COPYRIGHT/THIRD-PARTY-NOTICES/THIRD-PARTY-LICENSES/ThirdPartyNoticeText/ThirdPartyText/COPYING";
+
+// Main file whose embedded license text contains a ## line
+const SEED_MAIN_GHOST_INJECTION = SEED_MAIN.replace(
+  "old gone license",
+  `old gone license
+
+## Not a package heading
+still license text`
+);
+
+// Review file with a Missing summary section, as real output has
+const SEED_REVIEW_SUMMARY = `
+---
+
+## Missing summary
+
+### Missing Source
+
+- (none)
+
+### Missing package.json license field
+
+- (none)
+
+### Missing ${LICENSE_LABEL} files
+
+- gone-pkg@0.9.0
+`;
+
+// Migration case: files where a past buggy run already wrote ghost packages
+// ("Missing summary" plus one from a license-text heading); reading them
+// must not revive the ghosts
+function ghostMainBlock(key, anchor) {
+  return `<a id="${anchor}"></a>
+## ${key}
+- Source: (missing)
+- License: (missing)
+- Usage: Not found in node_modules (kept from previous output)
+- (no ${LICENSE_LABEL} files)
+
+_No ${LICENSE_LABEL} file found in package directory._
+`;
+}
+
+function ghostReviewBlock(key, anchor) {
+  return `## ${key}
+- Main: THIRD-PARTY-LICENSE.md#${anchor}
+- Source: (missing)
+- License: (missing)
+- Files:
+  - (none)
+- Status: Not found in node_modules (kept from previous output)
+- Notes:
+`;
+}
+
+const SEED_MAIN_GHOST_MIGRATION = SEED_MAIN.replace(
+  '<a id="pkg-pkg-a-1-0-0"></a>',
+  `${ghostMainBlock("Missing summary", "pkg-missing-summary")}
+${ghostMainBlock("Not a package heading", "pkg-not-a-package-heading")}
+<a id="pkg-pkg-a-1-0-0"></a>`
+);
+
+const SEED_REVIEW_GHOST_MIGRATION =
+  SEED_REVIEW.replace(
+    "## pkg-a@1.0.0",
+    `${ghostReviewBlock("Missing summary", "pkg-missing-summary")}
+${ghostReviewBlock("Not a package heading", "pkg-not-a-package-heading")}
+## pkg-a@1.0.0`
+  ) + SEED_REVIEW_SUMMARY;
+
+// Anchor strings that appear in the output only when ghost packages exist
+const GHOST_MARKERS = ["pkg-missing-summary", "pkg-not-a-package-heading"];
+
 // ---- シナリオ定義 -----------------------------------------------------
 
 const MAIN = "THIRD-PARTY-LICENSE.md";
@@ -211,6 +303,7 @@ const scenarios = [
     args: ["--dependencies-all"],
     exit: 0,
     files: { [MAIN]: "license.md", [REVIEW]: "review.md" },
+    forbidden: { [MAIN]: ["\n## Ghost"], [REVIEW]: ["\n## Ghost"] },
   },
   {
     name: "review-only",
@@ -238,6 +331,45 @@ const scenarios = [
     exit: 0,
     seed: true,
     files: { [MAIN]: "license.md", [REVIEW]: "review.md" },
+  },
+  {
+    // ## lines inside license texts and the review's Missing summary
+    // section must not become ghost packages
+    name: "update-ghost-injection",
+    args: ["--update"],
+    exit: 0,
+    seed: true,
+    seedMain: SEED_MAIN_GHOST_INJECTION,
+    seedReview: SEED_REVIEW + SEED_REVIEW_SUMMARY,
+    files: { [MAIN]: "license.md", [REVIEW]: "review.md" },
+    forbidden: { [MAIN]: GHOST_MARKERS, [REVIEW]: GHOST_MARKERS },
+  },
+  {
+    // Same as update-ghost-injection but with CRLF seeds, covering the
+    // fence/heading scan on Windows-generated files
+    name: "update-ghost-injection-crlf",
+    args: ["--update"],
+    exit: 0,
+    seed: true,
+    seedEol: "\r\n",
+    seedMain: SEED_MAIN_GHOST_INJECTION,
+    seedReview: SEED_REVIEW + SEED_REVIEW_SUMMARY,
+    snapshots: "update-ghost-injection",
+    files: { [MAIN]: "license.md", [REVIEW]: "review.md" },
+    forbidden: { [MAIN]: GHOST_MARKERS, [REVIEW]: GHOST_MARKERS },
+  },
+  {
+    // Existing files already containing ghosts must not revive them
+    // (migration); with ghosts removed the output equals a normal update
+    name: "update-ghost-migration",
+    args: ["--update"],
+    exit: 0,
+    seed: true,
+    seedMain: SEED_MAIN_GHOST_MIGRATION,
+    seedReview: SEED_REVIEW_GHOST_MIGRATION,
+    snapshots: "update",
+    files: { [MAIN]: "license.md", [REVIEW]: "review.md" },
+    forbidden: { [MAIN]: GHOST_MARKERS, [REVIEW]: GHOST_MARKERS },
   },
   {
     // CRLF の既存ファイルでも --update が同じ結果になること(Windows 生成物の取り込み)
@@ -305,8 +437,10 @@ test("CLI golden scenarios", async (t) => {
       fs.mkdirSync(outDir, { recursive: true });
       if (scenario.seed) {
         const eol = scenario.seedEol ?? "\n";
-        fs.writeFileSync(path.join(outDir, MAIN), SEED_MAIN.replace(/\n/g, eol));
-        fs.writeFileSync(path.join(outDir, REVIEW), SEED_REVIEW.replace(/\n/g, eol));
+        const seedMain = scenario.seedMain ?? SEED_MAIN;
+        const seedReview = scenario.seedReview ?? SEED_REVIEW;
+        fs.writeFileSync(path.join(outDir, MAIN), seedMain.replace(/\n/g, eol));
+        fs.writeFileSync(path.join(outDir, REVIEW), seedReview.replace(/\n/g, eol));
       }
 
       const res = spawnSync(
@@ -319,6 +453,18 @@ test("CLI golden scenarios", async (t) => {
       assert.equal(res.status, scenario.exit, `exit code (stderr: ${res.stderr})`);
       assertSnapshot(normalize(res.stdout), `${snapDir}/stdout.txt`);
       assertSnapshot(normalize(res.stderr), `${snapDir}/stderr.txt`);
+
+      // Forbidden strings are checked even under UPDATE_SNAPSHOTS=1 so a
+      // reintroduced bug cannot bake ghosts into the snapshots
+      for (const [outFile, needles] of Object.entries(scenario.forbidden ?? {})) {
+        const content = fs.readFileSync(path.join(outDir, outFile), "utf8");
+        for (const needle of needles) {
+          assert.ok(
+            !content.includes(needle),
+            `${outFile} must not contain "${needle}"`
+          );
+        }
+      }
 
       for (const [outFile, snapName] of Object.entries(scenario.files)) {
         const content = fs.readFileSync(path.join(outDir, outFile), "utf8");
