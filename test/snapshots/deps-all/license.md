@@ -62,6 +62,18 @@ ISC License root copy
 MIT ho
 ```
 
+<a id="pkg-linked-pkg-1-0-0"></a>
+## linked-pkg@1.0.0
+- Source: https://example.com/linked
+- License: MIT
+- Usage: Present in node_modules
+- LICENSE
+
+### LICENSE
+```text
+MIT linked
+```
+
 <a id="pkg-multi-lic-3-1-4"></a>
 ## multi-lic@3.1.4
 - Source: https://example.com/multi

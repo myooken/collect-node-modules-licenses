@@ -48,6 +48,15 @@ Main file: THIRD-PARTY-LICENSE.md
 - Status: Present in node_modules
 - Notes:
 
+## linked-pkg@1.0.0
+- Main: THIRD-PARTY-LICENSE.md#pkg-linked-pkg-1-0-0
+- Source: https://example.com/linked
+- License: MIT
+- Files:
+  - LICENSE
+- Status: Present in node_modules
+- Notes:
+
 ## multi-lic@3.1.4
 - Main: THIRD-PARTY-LICENSE.md#pkg-multi-lic-3-1-4
 - Source: https://example.com/multi

@@ -118,8 +118,9 @@ function buildFixture(root) {
     Buffer.concat([Buffer.from([0xff, 0xfe]), utf16Body])
   );
 
-  // pnpm 風 symlink: 実体は node_modules 外
-  const store = path.join(fixture, "store", "linked-pkg");
+  // pnpm レイアウト: 実体は node_modules/.pnpm 配下、トップレベルは symlink。
+  // 走査(実体)と依存解決(symlink 経由の realpath)が同一パスに解決されることを検証する
+  const store = path.join(nm, ".pnpm", "linked-pkg@1.0.0", "node_modules", "linked-pkg");
   writeJson(store, {
     name: "linked-pkg",
     version: "1.0.0",
@@ -304,6 +305,12 @@ test("CLI golden scenarios", async (t) => {
       for (const outFile of scenario.absent ?? []) {
         assert.ok(!fs.existsSync(path.join(outDir, outFile)), `${outFile} should not exist`);
       }
+      // 予期しないファイルが生成されていないことも保証する
+      assert.deepEqual(
+        fs.readdirSync(outDir).sort(),
+        Object.keys(scenario.files).sort(),
+        "unexpected files in output directory"
+      );
     });
   }
 });
