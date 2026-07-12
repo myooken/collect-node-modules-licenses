@@ -32,3 +32,16 @@ jobs:
           node-version: ${{ matrix.node }}
       # 依存ゼロのため npm install もキャッシュも不要。テスト実行のみ
       - run: npm test
+
+  # Compile the type-consumer fixture so the hand-written types/core.d.ts
+  # cannot drift from the actual API (typescript comes via npx, keeping
+  # the package itself dependency-free)
+  types:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm run test:types

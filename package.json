@@ -1,8 +1,10 @@
 {
   "name": "node-module-license-output",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "description": "Generate third-party-license markdown by scanning licenses in node_modules.",
   "license": "MIT",
+  "author": "myooken",
+  "funding": "https://github.com/sponsors/myooken",
   "type": "module",
   "repository": {
     "type": "git",
@@ -19,23 +21,39 @@
     "node_modules",
     "oss",
     "compliance",
-    "cli"
+    "cli",
+    "sbom",
+    "license-checker",
+    "third-party-notices",
+    "markdown",
+    "pnpm",
+    "audit"
   ],
   "exports": {
-    ".": "./src/core.js"
+    ".": {
+      "types": "./types/core.d.ts",
+      "default": "./src/core.js"
+    },
+    "./package.json": "./package.json"
   },
+  "types": "./types/core.d.ts",
   "bin": {
     "third-party-license": "./src/cli.js"
   },
   "files": [
     "src",
+    "types",
     "README.md",
     "LICENSE"
   ],
   "scripts": {
-    "test": "node --test"
+    "test": "node --test",
+    "test:types": "npx -y -p typescript@5.9.3 tsc -p test-d"
   },
   "engines": {
     "node": ">=18"
+  },
+  "publishConfig": {
+    "provenance": true
   }
 }

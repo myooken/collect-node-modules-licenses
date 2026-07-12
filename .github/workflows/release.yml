@@ -1,0 +1,68 @@
+name: Release
+
+# Publishes to npm when a version tag (v*) is pushed.
+#
+# Uses npm trusted publishing (OIDC): no npm token secret is needed, and
+# provenance is generated automatically. One-time setup on npmjs.com:
+# package Settings -> Trusted Publisher -> GitHub Actions with
+# repository myooken/collect-node-modules-licenses and workflow
+# release.yml. Publishing fails until that is configured.
+#
+# A repository tag ruleset restricts who can create v* tags; the tests
+# run in a separate job so the OIDC token is only exposed to the
+# publish step. Actions are pinned by commit SHA in this workflow.
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 24
+      - run: npm test
+      - run: npm run test:types
+
+  publish:
+    needs: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      # OIDC token for npm trusted publishing / provenance
+      id-token: write
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+      # Trusted publishing requires npm >= 11.5.1. Use the npm bundled
+      # with the runner's Node (24 ships >= 11.8) instead of installing
+      # one from the registry inside this OIDC-enabled job, where a
+      # compromised tarball would run as the publish command. Fail fast
+      # if the bundled npm ever falls short.
+      - name: Verify bundled npm supports trusted publishing
+        run: |
+          v="$(npm --version)"
+          req="11.5.1"
+          if [ "$(printf '%s\n' "$req" "$v" | sort -V | head -n1)" != "$req" ]; then
+            echo "bundled npm $v is too old for trusted publishing (need >= $req)" >&2
+            exit 1
+          fi
+      - name: Check tag matches package.json version
+        run: |
+          pkg="v$(node -p "require('./package.json').version")"
+          if [ "$pkg" != "$GITHUB_REF_NAME" ]; then
+            echo "package.json is $pkg but tag is $GITHUB_REF_NAME" >&2
+            exit 1
+          fi
+      - run: npm publish
