@@ -1,15 +1,95 @@
 # Third-Party License Output for node_modules
 
 [![CI](https://github.com/myooken/collect-node-modules-licenses/actions/workflows/ci.yml/badge.svg)](https://github.com/myooken/collect-node-modules-licenses/actions/workflows/ci.yml)
+[![npm version](https://img.shields.io/npm/v/node-module-license-output)](https://www.npmjs.com/package/node-module-license-output)
 
-Package name: node-module-license-output
+English | [日本語](README.ja.md)
 
-https://www.npmjs.com/package/node-module-license-output
+This project goes by three names, depending on where you meet it:
+
+| What               | Name                                                                                     |
+| ------------------ | ---------------------------------------------------------------------------------------- |
+| npm package        | [`node-module-license-output`](https://www.npmjs.com/package/node-module-license-output) |
+| CLI command        | `third-party-license`                                                                     |
+| GitHub repository  | `collect-node-modules-licenses`                                                           |
 
 ### What is this?
 
 A tool to scan `node_modules` and **output third-party licenses in Markdown**.  
 It generates two files: `THIRD-PARTY-LICENSE.md` (main content) and `THIRD-PARTY-LICENSE-REVIEW.md` (review checklist).
+
+### Sample output
+
+Running `npx --package=node-module-license-output -- third-party-license` in a project that depends on `ms`:
+
+```
+Generated: THIRD-PARTY-LICENSE.md
+Review:    THIRD-PARTY-LICENSE-REVIEW.md
+Packages:  1
+Missing LICENSE/NOTICE/COPYRIGHT/THIRD-PARTY-NOTICES/THIRD-PARTY-LICENSES/ThirdPartyNoticeText/ThirdPartyText/COPYING: 0
+```
+
+**THIRD-PARTY-LICENSE.md** — one section per package, with the full license text embedded:
+
+````markdown
+# Third-Party Licenses
+
+Generated from: node_modules
+
+<a id="pkg-ms-2-1-3"></a>
+## ms@2.1.3
+- Source: vercel/ms
+- License: MIT
+- Usage: Present in node_modules
+- license.md
+
+### license.md
+```text
+The MIT License (MIT)
+
+Copyright (c) 2020 Vercel, Inc.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+...(full license text continues)...
+```
+````
+
+**THIRD-PARTY-LICENSE-REVIEW.md** — a checklist with per-package status and a summary of anything missing:
+
+```markdown
+# THIRD-PARTY-LICENSE-REVIEW
+
+Generated from: node_modules
+Main file: THIRD-PARTY-LICENSE.md
+
+## ms@2.1.3
+- Main: THIRD-PARTY-LICENSE.md#pkg-ms-2-1-3
+- Source: vercel/ms
+- License: MIT
+- Files:
+  - license.md
+- Status: Present in node_modules
+- Notes:
+
+---
+
+## Missing summary
+
+### Missing Source
+
+- (none)
+
+### Missing package.json license field
+
+- (none)
+
+### Missing LICENSE/NOTICE/COPYRIGHT/THIRD-PARTY-NOTICES/THIRD-PARTY-LICENSES/ThirdPartyNoticeText/ThirdPartyText/COPYING files
+
+- (none)
+```
+
+The `Notes:` field in the review file is yours: anything you write there survives `--update` runs.
 
 ### Highlights
 
@@ -17,10 +97,9 @@ It generates two files: `THIRD-PARTY-LICENSE.md` (main content) and `THIRD-PARTY
 - **Outputs full license texts** from LICENSE/NOTICE/COPYRIGHT/THIRD-PARTY-NOTICES/THIRD-PARTY-LICENSES/ThirdPartyNoticeText/ThirdPartyText/COPYING files
 - **Review file** flags missing Source / license / license files
 - `--fail-on-missing` supports CI enforcement
+- Ships TypeScript type definitions for the programmatic API
 - Requires a `package.json` next to the target `node_modules` when using `--dependencies-only`
 - Intended for npm/pnpm usage (node_modules layout)
-
-CLI command: `third-party-license`
 
 ### Supported environments
 
